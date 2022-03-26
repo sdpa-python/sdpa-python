@@ -12,8 +12,8 @@ December 2010: modified for scipy
 __all__ = ['dconv_basisrep', 'rconv_matdecomp',
            'dconv_basisresult', 'rconv_decompresult']
 
-import asputils
-from clique import CliqueSet
+from . import asputils
+from .clique import CliqueSet
 from sdpap.symcone import SymCone
 from scipy.sparse import csc_matrix, bmat, eye
 from scipy import sparse

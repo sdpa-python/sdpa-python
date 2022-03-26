@@ -7,7 +7,7 @@ This is the module of sdpap.
 September 2010, Kenta KATO
 """
 
-from symcone import SymCone
+from .symcone import SymCone
 from scipy.sparse import csc_matrix, bmat, eye
 from scipy import sparse
 

@@ -9,7 +9,7 @@ December 2010, Kenta KATO
 
 __all__ = ['solve_sdpa']
 
-import sdpa
+from . import sdpa
 from sdpap.matdata import MatData
 from sdpap.symcone import SymCone
 from scipy.sparse import csr_matrix

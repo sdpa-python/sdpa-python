@@ -11,8 +11,8 @@ December 2010: modified for scipy
 
 __all__ = ['readproblem', 'writeproblem', 'fromsdpa', 'tosdpa']
 
-import convert
-from symcone import SymCone
+from . import convert
+from .symcone import SymCone
 from scipy.sparse import csc_matrix, csr_matrix
 from scipy import sparse
 from numpy import matrix
@@ -473,8 +473,8 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
     # write nBlock
     fp.write(str(int(K.f > 0) + int(K.l > 0) + len(K.q) + len(K.s)) + "\n")
 
-    print J
-    print K
+    print(J)
+    print(K)
 
     # write blockStruct
     blockStruct = []

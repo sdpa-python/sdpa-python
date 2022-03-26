@@ -8,7 +8,7 @@ December 2010, Kenta KATO
 
 __all__ = ['get_dualitygap', 'get_primalerror', 'get_dualerror']
 
-from symcone import SymCone
+from .symcone import SymCone
 from scipy.sparse.linalg.eigen import arpack
 from scipy.sparse import csc_matrix
 from scipy import sparse

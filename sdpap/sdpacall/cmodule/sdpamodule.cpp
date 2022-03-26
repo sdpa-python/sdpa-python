@@ -128,7 +128,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
        -------------------------------------------------- */
     /* Max Iteration */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "maxIteration");
-    maxIteration = (int)PyInt_AsLong(tmpObj);
+    maxIteration = (int)PyLong_AsLong(tmpObj);
     sdpa.setParameterMaxIteration(maxIteration);
 
     /* epsilonStar */
@@ -169,48 +169,44 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
     /* isSymmetric */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "isSymmetric");
-    nSymmChk = (int)PyInt_AsLong(tmpObj);
+    nSymmChk = (int)PyLong_AsLong(tmpObj);
 
     /* isDimacs */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "isDimacs");
-    nDimacs = (int)PyInt_AsLong(tmpObj);
+    nDimacs = (int)PyLong_AsLong(tmpObj);
 
     /* yPrint */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "yPrint");
-    tmpPrint = PyString_AsString(tmpObj);
-    sdpa.setParameterPrintXVec(tmpPrint);
+    sdpa.setParameterPrintXVec((char*)PyUnicode_AsUTF8(tmpObj));
 
     /* sPrint */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "sPrint");
-    tmpPrint = PyString_AsString(tmpObj);
-    sdpa.setParameterPrintXMat(tmpPrint);
+    sdpa.setParameterPrintXMat((char*)PyUnicode_AsUTF8(tmpObj));
 
     /* xPrint */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "xPrint");
-    tmpPrint = PyString_AsString(tmpObj);
-    sdpa.setParameterPrintYMat(tmpPrint);
+    sdpa.setParameterPrintYMat((char*)PyUnicode_AsUTF8(tmpObj));
 
     /* infPrint */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "infPrint");
-    tmpPrint = PyString_AsString(tmpObj);
-    sdpa.setParameterPrintInformation(tmpPrint);
+    sdpa.setParameterPrintInformation((char*)PyUnicode_AsUTF8(tmpObj));
 
     /* print */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "print");
-    outfile = PyString_AsString(tmpObj);
+    const char* outfile2 = PyUnicode_AsUTF8(tmpObj);
     /* default setting is displaying information to stdout */
     fp = stdout;
-    if (strlen(outfile) == 0) {
+    if (strlen(outfile2) == 0) {
         fp = NULL;
     } else {
-        if (strncmp("display", outfile, strlen(outfile)) == 0) {
+        if (strncmp("display", outfile2, strlen(outfile2)) == 0) {
             fp = stdout;
-        } else if (strncmp("no", outfile, strlen(outfile)) == 0) {
+        } else if (strncmp("no", outfile2, strlen(outfile2)) == 0) {
             fp = NULL;
         } else {
-            fp = fopen(outfile, "at");
+            fp = fopen(outfile2, "at");
             if (fp == NULL) {
-                printf("Failed to open %s\n", outfile);
+                printf("Failed to open %s\n", outfile2);
                 fp = stdout;
             } else {
                 nOutfile = 1;
@@ -221,15 +217,15 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
     /* resultFile */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "sdpaResult");
-    outfile = PyString_AsString(tmpObj);
+    const char* outfile3 = PyUnicode_AsUTF8(tmpObj);
     fpResult = NULL;
-    if (strlen(outfile) > 0) {
-        if(strncmp("no", outfile, strlen(outfile)) == 0) {
+    if (strlen(outfile3) > 0) {
+        if(strncmp("no", outfile3, strlen(outfile3)) == 0) {
             // printf("resultFile is NULL\n");
         } else {
-            fpResult = fopen(outfile, "w");
+            fpResult = fopen(outfile3, "w");
             if (fpResult == NULL) {
-                printf("Failed to open %s\n", outfile);
+                printf("Failed to open %s\n", outfile3);
                 printf("Skip the detail file\n");
             }
         }
@@ -245,7 +241,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
     /* numThreads */
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "numThreads");
-    sdpa.setNumThreads((int)PyInt_AsLong(tmpObj));
+    sdpa.setNumThreads((int)PyLong_AsLong(tmpObj));
 
 #if MX_DEBUG
     rMessage("");
@@ -256,9 +252,9 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
        -------------------------------------------------- */
     /* mDim -!- ATTENTION: Matrix A is transposed -!- */
     tmpObj = PyObject_GetAttrString(At_ptr, "size_col");
-    mDim = PyInt_AsLong(tmpObj);
+    mDim = PyLong_AsLong(tmpObj);
     tmpObj = PyObject_GetAttrString(At_ptr, "size_row");
-    int size_n = PyInt_AsLong(tmpObj);
+    int size_n = PyLong_AsLong(tmpObj);
 
     PyObject* x_ptr = NULL;
     PyObject* y_ptr = NULL;
@@ -291,7 +287,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     size_t K_f = 0;
     int isK_f = 0;
     tmpObj = PyDict_GetItemString((PyObject*)dictK_ptr, "f");
-    K_f = (int)PyInt_AsLong(tmpObj);
+    K_f = (int)PyLong_AsLong(tmpObj);
     if (K_f > 0) {
         rError("SDPA does not support K.f");
     }
@@ -304,7 +300,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     size_t K_l = 0;
     int isK_l = 0;
     tmpObj = PyDict_GetItemString((PyObject*)dictK_ptr, "l");
-    K_l = (int)PyInt_AsLong(tmpObj);
+    K_l = (int)PyLong_AsLong(tmpObj);
     if (K_l > 0) {
         isK_l = 1;
         nBlock++;
@@ -329,7 +325,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
         for (int block = 0; block < K_socpNoCones; block++) {
             PyObject* tmpInt = PyTuple_GetItem(tmpObj, block);
-            K_q[block] = (int)PyInt_AsLong(tmpInt);
+            K_q[block] = (int)PyLong_AsLong(tmpInt);
             K_socpConeStart[block + 1] = K_socpConeStart[block] + K_q[block];
             nBlock++;
         }
@@ -353,7 +349,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
         for (int block = 0; block < K_sdpNoCones; block++) {
             PyObject* tmpInt = PyTuple_GetItem(tmpObj, block);
-            K_s[block] = (int)PyInt_AsLong(tmpInt);
+            K_s[block] = (int)PyLong_AsLong(tmpInt);
             K_sdpConeStart[block + 1] = K_sdpConeStart[block] + K_s[block] * K_s[block];
             nBlock++;
         }
@@ -421,7 +417,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     num_nnz = PyList_Size(valObj);
     for (int i = 0; i < num_nnz; i++) {
         val = PyFloat_AsDouble(PyList_GetItem(valObj, i));
-        row = PyInt_AsLong(PyList_GetItem(rowObj, i));
+        row = PyLong_AsLong(PyList_GetItem(rowObj, i));
         sdpa.inputCVec(row + 1, -val);
     }
 
@@ -439,7 +435,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     int currentSdpCone = 0;
     for (int index = 0; index < num_nnz; index++) {
         val = PyFloat_AsDouble(PyList_GetItem(valObj, index));
-        row = PyInt_AsLong(PyList_GetItem(rowObj, index));
+        row = PyLong_AsLong(PyList_GetItem(rowObj, index));
         if (row < K_l) {
             sdpa.inputElement(0, 1, row + 1, row + 1, -val);
         } else if (row - K_l < size_Kq) {
@@ -477,7 +473,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
 
     int row_ptr[mDim + 1];
     for (int i = 0; i <= mDim; i++) {
-        row_ptr[i] = PyInt_AsLong(PyList_GetItem(rowObj, i));
+        row_ptr[i] = PyLong_AsLong(PyList_GetItem(rowObj, i));
     }
 
     int start_idx, end_idx;
@@ -489,7 +485,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         currentSdpCone = 0;
         for (int index = start_idx; index < end_idx; index++) {
             val = PyFloat_AsDouble(PyList_GetItem(valObj, index));
-            col = PyInt_AsLong(PyList_GetItem(colObj, index));
+            col = PyLong_AsLong(PyList_GetItem(colObj, index));
             if (col < K_l) {
                 sdpa.inputElement(row + 1, 1, col + 1, col + 1, -val);
             } else if (col - K_l < size_Kq) {
@@ -751,14 +747,21 @@ PyDoc_STRVAR(sdpa__doc__, "SDPA: SDPAP internal API.\n **** CAUTION **** \nDo NO
 
 static PyObject* sdpamodule;
 
-static PyMethodDef sdpa_functions[] = {
+static PyMethodDef sdpa_methods[] = {
     {"sedumiwrap", (PyCFunction) sedumiwrap, METH_VARARGS | METH_KEYWORDS, doc_sedumiwrap},
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initsdpa(void)
+static struct PyModuleDef _sdpa =
 {
-    sdpamodule = Py_InitModule3("sdpa", sdpa_functions, sdpa__doc__);
-    return;
-}
+    PyModuleDef_HEAD_INIT,
+    "sdpa",
+    NULL,
+    -1,   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    sdpa_methods
+};
 
+PyMODINIT_FUNC PyInit_sdpa(void)
+{
+    return PyModule_Create(&_sdpa);
+}

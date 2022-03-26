@@ -45,7 +45,7 @@ static PyObject* ordering_mmd(PyObject* self, PyObject* args)
 
     /* Get size_n */
     tmpObj = PyObject_GetAttrString(asp_ptr, "size_col");
-    int size_n = PyInt_AsLong(tmpObj);
+    int size_n = PyLong_AsLong(tmpObj);
 
 #if MX_DEBUG
     printf("size_n = %d\n", size_n);
@@ -74,7 +74,7 @@ static PyObject* ordering_mmd(PyObject* self, PyObject* args)
     tmpObj = PyObject_GetAttrString(asp_ptr, "rowind");
     int* asp_rowind = new int[num_nnz];
     for (int i = 0; i < num_nnz; i++) {
-        asp_rowind[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        asp_rowind[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
 #if MX_DEBUG
@@ -85,7 +85,7 @@ static PyObject* ordering_mmd(PyObject* self, PyObject* args)
     tmpObj = PyObject_GetAttrString(asp_ptr, "colptr");
     int * asp_colptr = new int[size_n + 1];
     for (int i = 0; i <= size_n; i++) {
-        asp_colptr[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        asp_colptr[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
 #if MX_DEBUG
@@ -146,7 +146,7 @@ static PyObject* cholesky(PyObject* self, PyObject* args)
 
     /* Get size_n */
     tmpObj = PyObject_GetAttrString(A_ptr, "size_col");
-    int size_n = PyInt_AsLong(tmpObj);
+    int size_n = PyLong_AsLong(tmpObj);
 
     /* Get num of nonzero */
     tmpObj = PyObject_GetAttrString(A_ptr, "values");
@@ -162,14 +162,14 @@ static PyObject* cholesky(PyObject* self, PyObject* args)
     tmpObj = PyObject_GetAttrString(A_ptr, "rowind");
     int* A_rowind = new int[num_nnz];
     for (int i = 0; i < num_nnz; i++) {
-        A_rowind[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        A_rowind[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     /* Get colptr */
     tmpObj = PyObject_GetAttrString(A_ptr, "colptr");
     int * A_colptr = new int[size_n + 1];
     for (int i = 0; i <= size_n; i++) {
-        A_colptr[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        A_colptr[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     SparseMatrix* A = new SparseMatrix(size_n, size_n, num_nnz);
@@ -218,11 +218,11 @@ static PyObject* cholesky(PyObject* self, PyObject* args)
 
     for (int i = 0; i < R->getNumNonzero(); i++) {
         PyList_SetItem(valObj, i, PyFloat_FromDouble(R->values[i]));
-        PyList_SetItem(rowObj, i, PyInt_FromLong(R->rowind[i]));
+        PyList_SetItem(rowObj, i, PyLong_FromLong(R->rowind[i]));
     }
 
     for (int i = 0; i <= size_n; i++) {
-        PyList_SetItem(colObj, i, PyInt_FromLong(R->colptr[i]));
+        PyList_SetItem(colObj, i, PyLong_FromLong(R->colptr[i]));
     }
 
 #if MX_DEBUG
@@ -248,13 +248,22 @@ PyDoc_STRVAR(spcoloext__doc__, "SPCOLOEXT: spcolo internal API.\n **** CAUTION *
 
 static PyObject* spcoloextmodule;
 
-static PyMethodDef spcoloext_functions[] = {
+static PyMethodDef spcoloext_methods[] = {
     {"ordering_mmd", (PyCFunction)ordering_mmd, METH_VARARGS, doc_ordering_mmd},
     {"cholesky", (PyCFunction)cholesky, METH_VARARGS, doc_cholesky},
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initspcoloext(void)
+static struct PyModuleDef spcoloext =
 {
-    spcoloextmodule = Py_InitModule3("spcoloext", spcoloext_functions, spcoloext__doc__);
+    PyModuleDef_HEAD_INIT,
+    "spcoloext",
+    NULL,
+    -1,   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    spcoloext_methods
+};
+
+PyMODINIT_FUNC PyInit_spcoloext(void)
+{
+    return PyModule_Create(&spcoloext);
 }

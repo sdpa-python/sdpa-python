@@ -54,9 +54,9 @@ static PyObject* lu(PyObject* self, PyObject* args)
 
     /* Make A_f */
     tmpObj = PyObject_GetAttrString(Af_ptr, "size_row");
-    size_row = PyInt_AsLong(tmpObj);
+    size_row = PyLong_AsLong(tmpObj);
     tmpObj = PyObject_GetAttrString(Af_ptr, "size_col");
-    size_col = PyInt_AsLong(tmpObj);
+    size_col = PyLong_AsLong(tmpObj);
     size_Kf = size_col;
 
     tmpObj = PyObject_GetAttrString(Af_ptr, "values");
@@ -72,13 +72,13 @@ static PyObject* lu(PyObject* self, PyObject* args)
     tmpObj = PyObject_GetAttrString(Af_ptr, "rowind");
     NewArray(rowind, int, num_nnz);
     for (int i = 0; i < num_nnz; i++) {
-        rowind[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        rowind[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     tmpObj = PyObject_GetAttrString(Af_ptr, "colptr");
     NewArray(colptr, int, size_col + 1);
     for (int i = 0; i <= size_col; i++) {
-        colptr[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        colptr[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     SparseMatrix* A_f = new SparseMatrix(size_row, size_col, num_nnz);
@@ -102,7 +102,7 @@ static PyObject* lu(PyObject* self, PyObject* args)
 
     /* Make A_lqs */
     tmpObj = PyObject_GetAttrString(Alqs_ptr, "size_col");
-    size_col = PyInt_AsLong(tmpObj);
+    size_col = PyLong_AsLong(tmpObj);
 
     tmpObj = PyObject_GetAttrString(Alqs_ptr, "values");
     num_nnz = PyList_Size(tmpObj);
@@ -114,13 +114,13 @@ static PyObject* lu(PyObject* self, PyObject* args)
     tmpObj = PyObject_GetAttrString(Alqs_ptr, "rowind");
     NewArray(rowind, int, num_nnz);
     for (int i = 0; i < num_nnz; i++) {
-        rowind[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        rowind[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     tmpObj = PyObject_GetAttrString(Alqs_ptr, "colptr");
     NewArray(colptr, int, size_col + 1);
     for (int i = 0; i <= size_col; i++) {
-        colptr[i] = PyInt_AsLong(PyList_GetItem(tmpObj, i));
+        colptr[i] = PyLong_AsLong(PyList_GetItem(tmpObj, i));
     }
 
     SparseMatrix* A_lqs = new SparseMatrix(size_row, size_col, num_nnz);
@@ -194,11 +194,11 @@ static PyObject* lu(PyObject* self, PyObject* args)
 
     for (int i = 0; i < LiP->getNumNonzero(); i++) {
         PyList_SetItem(LiP_val, i, PyFloat_FromDouble(LiP->values[i]));
-        PyList_SetItem(LiP_row, i, PyInt_FromLong(LiP->rowind[i]));
+        PyList_SetItem(LiP_row, i, PyLong_FromLong(LiP->rowind[i]));
     }
 
     for (int i = 0; i <= size_row; i++) {
-        PyList_SetItem(LiP_col, i, PyInt_FromLong(LiP->colptr[i]));
+        PyList_SetItem(LiP_col, i, PyLong_FromLong(LiP->colptr[i]));
     }
 
     PyTuple_SetItem(LiPObj, 0, LiP_val);
@@ -225,11 +225,11 @@ static PyObject* lu(PyObject* self, PyObject* args)
 
     for (int i = 0; i < U->getNumNonzero(); i++) {
         PyList_SetItem(U_val, i, PyFloat_FromDouble(U->values[i]));
-        PyList_SetItem(U_row, i, PyInt_FromLong(U->rowind[i]));
+        PyList_SetItem(U_row, i, PyLong_FromLong(U->rowind[i]));
     }
 
     for (int i = 0; i <= rank_Af; i++) {
-        PyList_SetItem(U_col, i, PyInt_FromLong(U->colptr[i]));
+        PyList_SetItem(U_col, i, PyLong_FromLong(U->colptr[i]));
     }
 
     PyTuple_SetItem(UObj, 0, U_val);
@@ -258,12 +258,12 @@ static PyObject* lu(PyObject* self, PyObject* args)
 
         for (int i = 0; i < V->getNumNonzero(); i++) {
             PyList_SetItem(V_val, i, PyFloat_FromDouble(V->values[i]));
-            PyList_SetItem(V_row, i, PyInt_FromLong(V->rowind[i]));
+            PyList_SetItem(V_row, i, PyLong_FromLong(V->rowind[i]));
         }
 
         int size = size_Kf - rank_Af;
         for (int i = 0; i <= size; i++) {
-            PyList_SetItem(V_col, i, PyInt_FromLong(V->colptr[i]));
+            PyList_SetItem(V_col, i, PyLong_FromLong(V->colptr[i]));
         }
 
         PyTuple_SetItem(VObj, 0, V_val);
@@ -286,7 +286,7 @@ static PyObject* lu(PyObject* self, PyObject* args)
     }
 
     for (int i = 0; i < rank_Af; i++) {
-        PyList_SetItem(QObj, i, PyInt_FromLong(Q[i]));
+        PyList_SetItem(QObj, i, PyLong_FromLong(Q[i]));
     }
 
 #if MX_DEBUG
@@ -304,12 +304,21 @@ PyDoc_STRVAR(fvelimext__doc__, "FVELIMEXT: fvelim internal API.\n **** CAUTION *
 
 static PyObject* fvelimextmodule;
 
-static PyMethodDef fvelimext_functions[] = {
+static PyMethodDef fvelimext_methods[] = {
     {"lu", (PyCFunction)lu, METH_VARARGS, doc_lu},
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initfvelimext(void)
+static struct PyModuleDef fvelimext =
 {
-    fvelimextmodule = Py_InitModule3("fvelimext", fvelimext_functions, fvelimext__doc__);
+    PyModuleDef_HEAD_INIT,
+    "fvelimext",
+    NULL,
+    -1,   /* size of per-interpreter state of the module, or -1 if the module keeps state in global variables. */
+    fvelimext_methods
+};
+
+PyMODINIT_FUNC PyInit_fvelimext(void)
+{
+    return PyModule_Create(&fvelimext);
 }

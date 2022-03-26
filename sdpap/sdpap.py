@@ -16,14 +16,14 @@ December 2010: modified for scipy
 
 __all__ = ['solve']
 
-import convert
-import sdpaputils
-import fileio
-from param import param
-from symcone import SymCone
-from sdpacall import sdpacall
-from spcolo import spcolo
-from fvelim import fvelim
+from . import convert
+from . import sdpaputils
+from . import fileio
+from .param import param
+from .symcone import SymCone
+from .sdpacall import sdpacall
+from .spcolo import spcolo
+from .fvelim import fvelim
 from scipy import sparse
 from numpy import matrix
 import copy

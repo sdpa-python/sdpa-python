@@ -12,8 +12,8 @@ December, 2010: modified for scipy
 __all__ = ['getASP', 'cliques_fromASP']
 
 from sdpap.matdata import MatData
-import spcoloext
-from clique import CliqueSet
+from . import spcoloext
+from .clique import CliqueSet
 from scipy.sparse import csc_matrix, tril
 from scipy import array, sparse
 

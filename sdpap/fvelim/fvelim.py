@@ -9,7 +9,7 @@ December 2010, Kenta KATO
 
 __all__ = ['split', 'eliminate', 'result_split', 'result_elimination']
 
-import fvelimext
+from . import fvelimext
 from sdpap.symcone import SymCone
 from sdpap.matdata import MatData
 from scipy.sparse import csc_matrix, csr_matrix, bmat, eye
@@ -167,7 +167,7 @@ def eliminate(A, b, c, K, rho, zeroPoint):
 
     # Get gamma
     gamma = (cfQU * LPb_B).todense()[0,0]
-    print "gamma = %f" % gamma
+    print("gamma = %f" % gamma)
 
     # Make K2
     K2 = SymCone(f=0, l=K.l, q=K.q, s=K.s)
