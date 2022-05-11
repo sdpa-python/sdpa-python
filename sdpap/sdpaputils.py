@@ -94,20 +94,14 @@ def get_primalerror(x, A, b, J):
             mat_col = [i % k for i in vec.indices]
             mat_val = vec.data
             mat = csc_matrix((mat_val, (mat_row, mat_col)), shape=(k, k))
-            if 'eigen_symmetric' in dir(arpack):
-                # -!- CAUTION -!-
-                # 'arpack.eigen_symmetric' may be renamed to 'arpack.eigs'
-                #   in future release of scipy.
-                eig = arpack.eigen_symmetric(mat, k=1, which='SM',
-                                             return_eigenvectors=False)[0]
-            elif 'eigs' in dir(arpack):
-                eig = arpack.eigs(mat, k=1, which='SM',
+            # scipy.sparse.linalg.eigs raises a TypeError if mat is sparse and
+            # k (1 in this case) is >= n (no. of rows of mat) - 1
+            if mat.shape[0] <= 2:
+                eig = arpack.eigs(mat.toarray(), k=1, which='SM',
                                   return_eigenvectors=False)[0]
             else:
-                raise NameError("Either function name 'eigen_symmetric' "
-                                "or 'eigs' is not defined.\n"
-                                "The function to find eigenvalues may be "
-                                "renamed in future release of scipy.")
+                eig = arpack.eigs(mat, k=1, which='SM',
+                                  return_eigenvectors=False)[0]
 
             if eig < 0:
                 maxerr = max(maxerr, abs(eig))
