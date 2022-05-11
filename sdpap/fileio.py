@@ -324,18 +324,23 @@ def fromsdpa(filename):
 
     # read b
     line = fp.readline()
-    b_str = line.strip().split(' ')
+    line = line.strip()
+    line = line.strip('{}()')
+    if ',' in line:
+        b_str = line.strip().split(',')
+    else:
+        b_str = line.strip().split()
     while b_str.count('') > 0:
         b_str.remove('')
 
-    b = csr_matrix(matrix(map(float, [s.strip(',') for s in b_str]))).T
+    b = csr_matrix(matrix(list(map(float, [s for s in b_str])))).T
 
     # read c and A
     blockElements_c = [[] for i in range(nBlock)]
     blockElements_A = [[] for i in range(nBlock)]
     lineList = fp.readlines()
     for line in lineList:
-        row, block, colI, colJ, val = line.split(' ')[0:5]
+        row, block, colI, colJ, val = line.split()[0:5]
         row = int(row.strip(',')) - 1
         block = int(block.strip(',')) - 1
         colI = int(colI.strip(',')) - 1
@@ -357,7 +362,7 @@ def fromsdpa(filename):
 
     for block in range(nBlock):
         blockElements_c[block].sort()
-        blockElements_A[block].sort(lambda x, y: cmp(x[1], y[1]))
+        blockElements_A[block].sort(key = lambda x: x[1])
 
     elementsK_c = {'F':[[], []], 'L':[[], []], 'Q':[[], []], 'S':[[], []]}
     elementsK_A = {'F':[[], [], []], 'L':[[], [], []],
@@ -400,7 +405,7 @@ def fromsdpa(filename):
         elements_A[2].extend(elementsK_A['L'][2])
         offset += K.l
 
-    if K.q > 0:
+    if True: #K.q > 0:
         elements_c[0].extend([x + offset for x in elementsK_c['Q'][0]])
         elements_c[1].extend(elementsK_c['Q'][1])
         elements_A[0].extend(elementsK_A['Q'][0])
@@ -408,7 +413,7 @@ def fromsdpa(filename):
         elements_A[2].extend(elementsK_A['Q'][2])
         offset += sum(K.q)
 
-    if K.s > 0:
+    if True: #K.s > 0:
         elements_c[0].extend([x + offset for x in elementsK_c['S'][0]])
         elements_c[1].extend(elementsK_c['S'][1])
         elements_A[0].extend(elementsK_A['S'][0])
