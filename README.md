@@ -4,7 +4,7 @@
 
 This package is a Python 3 port of SDPA-P, the Python 2 based wrapper originally written by **Kenta KATO** provided at the [official SDPA website](http://sdpa.sourceforge.net/download.html). This repository aims to provide Python 3 support for SDPA. It will be accompanied with documentation to allow users to link SDPA against modern BLAS libraries (i.e. Intel MKL, Apple Accelerate and NVIDIA cuBLAS).
 
-For installation instructions, please see the documentation website.
+For installation instructions, please see the [documentation website](https://sdpa-python.github.io).
 
 ## History
 
