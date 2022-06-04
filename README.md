@@ -1,20 +1,30 @@
 # SDPA for Python
 
-`sdpa-python` is a Python 3 wrapper for SDPA (SemiDefinite Programming Algorithm). SDPA is a software package for solving general SDPs based on primal-dual interior-point methods with the HRVW/KSH/M search direction [1].
+SDPA for Python (`sdpa-python`) is a Python 3 wrapper for SDPA (SemiDefinite Programming Algorithm). SDPA is a software package for solving general SDPs based on primal-dual interior-point methods with the HRVW/KSH/M search direction [1].
 
-This package is a Python 3 port of SDPA-P, the Python 2 based wrapper originally written by **Kenta KATO** provided at the [official SDPA website](http://sdpa.sourceforge.net/download.html). This repository aims to provide Python 3 support for SDPA. It will be accompanied with documentation to allow users to link SDPA against modern BLAS libraries (i.e. Intel MKL, Apple Accelerate and NVIDIA cuBLAS).
+This package is a Python 3 port of SDPAP, the Python 2 based wrapper originally written by **Kenta Kato** provided at the [official SDPA website](http://sdpa.sourceforge.net/download.html). This repository aims to provide Python 3 support for SDPA.
 
-For installation instructions, please see the [documentation website](https://sdpa-python.github.io).
+SDPA for Python can be installed by
+
+```bash
+pip install sdpa-python
+```
+
+For usage documentation or to build from source, please see the [documentation website](https://sdpa-python.github.io).
+
+Owing to its implementation that uses BLAS/LAPACK for numerical linear algebra for dense matrix computation [1], it can potentially be linked against hardware specific BLAS implementations, providing acceleration on various architectures. Currently the binaries available on PyPI are built using OpenBLAS for Windows and Linux, and Apple Accelerate for macOS.
 
 ## History
 
-SDPA was officially developed between 1995 and 2012 by **Makoto Yamashita, Katsuki Fujisawa, Masakazu Kojima, Mituhiro Fukuda, Kazuhiro Kobayashi, Kazuhide Nakata and Maho Nakata** [1] [2] [3]. The [official SDPA website](http://sdpa.sourceforge.net/download.html) contains an unmaintained version of SDPA.
+SDPA was officially developed between 1995 and 2012 by **Makoto Yamashita, Katsuki Fujisawa, Masakazu Kojima, Mituhiro Fukuda, Kazuhiro Kobayashi, Kazuhide Nakata, Maho Nakata and Kazushige Goto** [1] [2] [3]. The [official SDPA website](http://sdpa.sourceforge.net/download.html) contains an unmaintained version of SDPA.
 
-Owing to it's implementation that uses LAPACK for numerical linear algebra for dense matrix computation [1], it can be linked against modern LAPACK implementations, providing performance gains on a variety of architectures.
+SDPAP was written by **Kenta Kato** as a Python 2 interface for SDPA. The [official SDPA website](http://sdpa.sourceforge.net/download.html) also contains an unmaintained version of SDPAP.
+
+This package is a Python 3 port of SDPAP.
 
 ## References
 
-If you are using SDPA for Python in your research, please cite SDPA by citing the following papers and book chapters. The BibTex has been provided in `CITATIONS.bib`.
+If you are using SDPA for Python in your research, please cite SDPA by citing the following papers and book chapters. The [BibTex of the below](https://github.com/sdpa-python/sdpa-python/blob/main/CITATIONS.bib) has been included in the repository.
 
 [1] Makoto Yamashita, Katsuki Fujisawa and Masakazu Kojima, "Implementation and evaluation of SDPA 6.0 (Semidefinite Programming Algorithm 6.0)," *Optimization Methods and Software, vol. 18, no. 4, pp. 491–505*, 2003, doi: [10.1080/1055678031000118482](https://doi.org/10.1080/1055678031000118482).
 
