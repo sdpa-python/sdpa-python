@@ -29,7 +29,7 @@ from numpy import matrix
 import copy
 import time
 
-def solve(A, b, c, K, J, option=None):
+def solve(A, b, c, K, J, option={}):
     """Solve CLP by SDPA
 
     If J.l or J.q or J.s > 0, clp_toLMI() or clp_toEQ() is called before solve.
@@ -47,12 +47,16 @@ def solve(A, b, c, K, J, option=None):
     timeinfo = dict()
     timeinfo['total'] = time.time()
 
+    if 'print' not in option:
+        option['print'] = 'display'
+    verbose = len(option['print']) != 0 and option['print'] != 'no'
+    maybe_print = print if verbose else lambda *a, **k: None
+
     # --------------------------------------------------
     # Set parameter
     # --------------------------------------------------
     option = param(option)
-    if len(option['print']) != 0 and option['print'] != 'no':
-        print('---------- SDPAP Start ----------')
+    maybe_print('---------- SDPAP Start ----------')
 
     # Write to output file
     if option['resultFile']:
@@ -93,20 +97,20 @@ def solve(A, b, c, K, J, option=None):
     totalSize_n = K.f + K.l + sum(K.q) + sum(z ** 2 for z in K.s)
     totalSize_m = J.f + J.l + sum(J.q) + sum(z ** 2 for z in J.s)
     if size_row != mA or size_col != nA:
-        print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
+        maybe_print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
               (mA, nA, size_row, size_col))
-        print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
+        maybe_print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
         raise ValueError('Inconsistent Size')
     if size_col != totalSize_n:
-        print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
+        maybe_print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
               (mA, nA, size_row, size_col))
-        print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
+        maybe_print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
         raise ValueError("Inconsistent Size c[n = %d], K[%d]"
                          % (size_col, totalSize_n))
     if size_row != totalSize_m:
-        print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
+        maybe_print("Size A[m = %d, n = %d], b[m = %d], c[n = %d] ::" %
               (mA, nA, size_row, size_col))
-        print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
+        maybe_print("nnz(A) = %d, nnz(c) = %d" % (A.nnz, c.nnz))
         raise ValueError("Inconsistent Size b[n = %d], J[%d]"
                          % (size_row, totalSize_m))
 
@@ -122,7 +126,7 @@ def solve(A, b, c, K, J, option=None):
     # Convert domain space sparsity
     if len(K.s) > 0:
         if option['domainMethod'] == 'clique':
-            print('Applying the d-space conversion method '
+            maybe_print('Applying the d-space conversion method '
                   'using clique trees...')
             dom_A, dom_b, dom_c, dom_K, dom_J, cliqueD = \
                    spcolo.dconv_cliquetree(A, b, c, K, J)
@@ -131,7 +135,7 @@ def solve(A, b, c, K, J, option=None):
             ############################################################
             return
         elif option['domainMethod'] == 'basis':
-            print('Applying the d-space conversion method '
+            maybe_print('Applying the d-space conversion method '
                   'using basis representation...')
             dom_A, dom_b, dom_c, dom_K, dom_J, cliqueD = \
                    spcolo.dconv_basisrep(A, b, c, K, J)
@@ -158,7 +162,7 @@ def solve(A, b, c, K, J, option=None):
     timeinfo['conv_range'] = time.time()
     if len(dom_J.s) > 0:
         if option['rangeMethod'] == 'clique':
-            print('Applying the r-space conversion method '
+            maybe_print('Applying the r-space conversion method '
                   'using clique trees...')
             ran_A, ran_b, ran_c, ran_K, ran_J, cliqueR = \
                     spcolo.rconv_cliquetree(dom_A, dom_b, dom_c, dom_K, dom_J)
@@ -166,7 +170,7 @@ def solve(A, b, c, K, J, option=None):
             # Under construction
             ############################################################
         elif option['rangeMethod'] == 'decomp':
-            print('Applying the r-space conversion method '
+            maybe_print('Applying the r-space conversion method '
                   'using matrix decomposition...')
             ran_A, ran_b, ran_c, ran_K, ran_J, cliqueR = \
                     spcolo.rconv_matdecomp(dom_A, dom_b, dom_c, dom_K, dom_J)
@@ -194,11 +198,11 @@ def solve(A, b, c, K, J, option=None):
     if ran_J.l > 0 or len(ran_J.q) > 0 or len(ran_J.s) > 0:
         useConvert = True
         if option['convMethod'] == 'LMI':
-            print('Converting CLP format to LMI standard form...')
+            maybe_print('Converting CLP format to LMI standard form...')
             A2, b2, c2, K2, J2, map_sdpIndex = \
                 convert.clp_toLMI(ran_A, ran_b, ran_c, ran_K, ran_J)
         elif option['convMethod'] == 'EQ':
-            print('Converting CLP format to EQ standard form.')
+            maybe_print('Converting CLP format to EQ standard form.')
             ##################################################
             # This method is under construction
             ##################################################
@@ -225,10 +229,10 @@ def solve(A, b, c, K, J, option=None):
 
     if K2.f > 0:
         if option['frvMethod'] == 'split':
-            print('Eliminating free variables with split method...')
+            maybe_print('Eliminating free variables with split method...')
             A3, b3, c3, K3 = fvelim.split(A2, b2, c2, K2, option['rho'])
         elif option['frvMethod'] == 'elimination':
-            print('Eliminationg free variables with elimination method...')
+            maybe_print('Eliminationg free variables with elimination method...')
             (A3, b3, c3, K3,
              LiP, U, Q, LPA_B, LPb_B, cfQU, gamma, rank_Af) = \
                 fvelim.eliminate(A2, b2, c2, K2,
@@ -255,16 +259,16 @@ def solve(A, b, c, K, J, option=None):
     # --------------------------------------------------
     # Get Result
     # --------------------------------------------------
-    print('Start: getCLPresult')
+    maybe_print('Start: getCLPresult')
 
     # Retrieve result of fvelim
     timeinfo['ret_fv'] = time.time();
     if K2.f > 0:
         if option['frvMethod'] == 'split':
-            print('Retrieving result with split method...')
+            maybe_print('Retrieving result with split method...')
             x2, y2, s2 = fvelim.result_split(x3, y3, s3, K2)
         elif option['frvMethod'] == 'elimination':
-            print('Retrieving result with elimination method...')
+            maybe_print('Retrieving result with elimination method...')
             x2, y2, s2 = fvelim.result_elimination(x3, y3, s3, K2,
                                                LiP, U, Q,
                                                LPA_B, LPb_B, cfQU, rank_Af)
@@ -279,13 +283,13 @@ def solve(A, b, c, K, J, option=None):
     timeinfo['ret_std'] = time.time()
     if useConvert:
         if option['convMethod'] == 'LMI':
-            print('Retrieving result from LMI standard form...')
+            maybe_print('Retrieving result from LMI standard form...')
             x, y = convert.result_fromLMI(x2, y2, ran_K, ran_J, map_sdpIndex)
             tmp = -sdpainfo['primalObj']
             sdpainfo['primalObj'] = -sdpainfo['dualObj']
             sdpainfo['dualObj'] = tmp
         elif option['convMethod'] == 'EQ':
-            print('Retrieving result from EQ standard form...')
+            maybe_print('Retrieving result from EQ standard form...')
             ##################################################
             # This method is under construction
             ##################################################
@@ -301,14 +305,14 @@ def solve(A, b, c, K, J, option=None):
     timeinfo['ret_range'] = time.time()
     if option['rangeMethod'] != 'none' and len(J.s) > 0:
         if option['rangeMethod'] == 'clique':
-            print('Retrieving result with r-space conversion method '
+            maybe_print('Retrieving result with r-space conversion method '
                   'using clique trees...')
             ############################################################
             # Under construction
             ############################################################
             x, y = spcolo.rconv_cliqueresult(x, y, dom_K, dom_J, ran_K, cliqueR)
         elif option['rangeMethod'] == 'decomp':
-            print('Retrieving result with r-space conversion method '
+            maybe_print('Retrieving result with r-space conversion method '
                   'using matrix decomposition...')
             x, y = spcolo.rconv_decompresult(x, y, dom_K, dom_J, ran_J, cliqueR)
 
@@ -318,14 +322,14 @@ def solve(A, b, c, K, J, option=None):
     timeinfo['ret_domain'] = time.time()
     if option['domainMethod'] != 'none' and len(K.s) > 0:
         if option['domainMethod'] == 'clique':
-            print('Retrieving result with d-space conversion method '
+            maybe_print('Retrieving result with d-space conversion method '
                   'using clique trees...')
             ############################################################
             # Under construction
             ############################################################
             x, y = spcolo.dconv_cliqueresult(x, y, K, J, dom_J, cliqueD)
         elif option['domainMethod'] == 'basis':
-            print('Retrieving result with d-space conversion method '
+            maybe_print('Retrieving result with d-space conversion method '
                   'using basis representation...')
             x, y = spcolo.dconv_basisresult(x, y, K, J, dom_K, cliqueD)
 
@@ -335,7 +339,7 @@ def solve(A, b, c, K, J, option=None):
     # --------------------------------------------------
     # Make dictionary 'info'
     # --------------------------------------------------
-    print('Making result infomation...')
+    maybe_print('Making result infomation...')
     timeinfo['convert'] = (timeinfo['conv_domain'] + timeinfo['conv_range'] +
                            timeinfo['conv_std'] + timeinfo['conv_fv'])
     timeinfo['retrieve'] = (timeinfo['ret_fv'] + timeinfo['ret_std'] +
@@ -360,25 +364,24 @@ def solve(A, b, c, K, J, option=None):
         fileio.write_result(fpout, x, y)
         fpout.close()
 
-    if len(option['print']) != 0 and option['print'] != 'no':
-        print('========================================')
-        print(' SDPAP: Result')
-        print('========================================')
-        print("    SDPA.phase = %s" % sdpainfo['phasevalue'])
-        print("     iteration = %d" % sdpainfo['iteration'])
-        print("    convMethod = %s" % option['convMethod'])
-        print("     frvMethod = %s" % option['frvMethod'])
-        print("  domainMethod = %s" % option['domainMethod'])
-        print("   rangeMethod = %s" % option['rangeMethod'])
-        print("     primalObj = %+10.16e" % sdpapinfo['primalObj'])
-        print("       dualObj = %+10.16e" % sdpapinfo['dualObj'])
-        print("    dualityGap = %+10.16e" % sdpapinfo['dualityGap'])
-        print("   primalError = %+10.16e" % sdpapinfo['primalError'])
-        print("     dualError = %+10.16e" % sdpapinfo['dualError'])
-        print("   convertTime = %f" % timeinfo['convert'])
-        print("     solveTime = %f" % timeinfo['sdpa'])
-        print("retrievingTime = %f" % timeinfo['retrieve'])
-        print("     totalTime = %f" % timeinfo['total'])
-        print('---------- SDPAP End ----------')
+    maybe_print('========================================')
+    maybe_print(' SDPAP: Result')
+    maybe_print('========================================')
+    maybe_print("    SDPA.phase = %s" % sdpainfo['phasevalue'])
+    maybe_print("     iteration = %d" % sdpainfo['iteration'])
+    maybe_print("    convMethod = %s" % option['convMethod'])
+    maybe_print("     frvMethod = %s" % option['frvMethod'])
+    maybe_print("  domainMethod = %s" % option['domainMethod'])
+    maybe_print("   rangeMethod = %s" % option['rangeMethod'])
+    maybe_print("     primalObj = %+10.16e" % sdpapinfo['primalObj'])
+    maybe_print("       dualObj = %+10.16e" % sdpapinfo['dualObj'])
+    maybe_print("    dualityGap = %+10.16e" % sdpapinfo['dualityGap'])
+    maybe_print("   primalError = %+10.16e" % sdpapinfo['primalError'])
+    maybe_print("     dualError = %+10.16e" % sdpapinfo['dualError'])
+    maybe_print("   convertTime = %f" % timeinfo['convert'])
+    maybe_print("     solveTime = %f" % timeinfo['sdpa'])
+    maybe_print("retrievingTime = %f" % timeinfo['retrieve'])
+    maybe_print("     totalTime = %f" % timeinfo['total'])
+    maybe_print('---------- SDPAP End ----------')
 
     return x, y, sdpapinfo, timeinfo, sdpainfo

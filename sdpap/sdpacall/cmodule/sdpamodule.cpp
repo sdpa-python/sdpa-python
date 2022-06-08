@@ -542,8 +542,10 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     rMessage("");
 #endif
 
-    printf("Converted to SDPA internal data / ");
-    printf("Starting SDPA main loop\n");
+    if (fp) {
+        fprintf(fp, "Converted to SDPA internal data / ");
+        fprintf(fp, "Starting SDPA main loop\n");
+    }
     TimeEnd(SDPA_CONVERT_END);
     TimeStart(SDPA_SOLVE_START);
     sdpa.solve();
@@ -557,7 +559,9 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
        Set output values to arguments
        -------------------------------------------------- */
     TimeStart(SDPA_RETRIEVE_START);
-    printf("Converting optimal solution to CLP format\n");
+    if (fp) {
+        fprintf(fp, "Converting optimal solution to CLP format\n");
+    }
 
     /* Optimal value for xVec */
     tmp_ptr = sdpa.getResultXVec();
