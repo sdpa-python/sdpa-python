@@ -1,12 +1,33 @@
 #!/usr/bin/env python
-"""spcolo.py
+"""
+Exploit sparsity in SDPs using techniques from [1]
 
-A module of spcolo
-Convert problem by exploiting sparsity
+These routines were originally implemented in SparseCoLO (MATLAB) [2] and are
+Copyright (C) 2009 Masakazu Kojima Group
+Department of Mathematical and Computing Sciences, Tokyo Institute of Technology
 
-August 2010, Kenta KATO
+Python translations written for SDPAP and are
+Copyright (C) 2010-2022 SDPA Project
 
-December 2010: modified for scipy
+[1] Sunyoung Kim, Masakazu Kojima, Martin Mevissen and Makoto Yamashita, "Exploiting sparsity in linear and nonlinear matrix inequalities via positive semidefinite matrix completion," Mathematical Programming, 129(1), 33–68. https://doi.org/10.1007/s10107-010-0402-6
+[2] http://www.opt.c.titech.ac.jp/kojima/SparseCoLO/SparseCoLO.htm
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+August 2010: `dconv_basisrep`, `rconv_matdecomp`, `dconv_basisresult`, `rconv_decompresult` written by Kenta Kato
+December 2010: Modified for SciPy
 """
 
 __all__ = ['dconv_basisrep', 'rconv_matdecomp',

@@ -1,10 +1,34 @@
 #!/usr/bin/env python
-"""sdpap.convert.py
-
+"""
 Convert CLP format to SeDuMi format
-This is the module of sdpap.
 
-September 2010, Kenta KATO
+These routines were originally implemented in SparseCoLO (MATLAB) [1] and are
+Copyright (C) 2009 Masakazu Kojima Group
+Department of Mathematical and Computing Sciences, Tokyo Institute of Technology
+
+SparseCoLO [1] implements sparsity exploitation algorithms in [2]
+
+Python translations of routines written for SDPAP and are
+Copyright (C) 2010-2022 SDPA Project
+
+[1] http://www.opt.c.titech.ac.jp/kojima/SparseCoLO/SparseCoLO.htm
+[2] Sunyoung Kim, Masakazu Kojima, Martin Mevissen and Makoto Yamashita, "Exploiting sparsity in linear and nonlinear matrix inequalities via positive semidefinite matrix completion," Mathematical Programming, 129(1), 33–68. https://doi.org/10.1007/s10107-010-0402-6
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+September 2010: `clp_toLMI` and `result_fromLMI` written by Kenta Kato
 """
 
 from .symcone import SymCone

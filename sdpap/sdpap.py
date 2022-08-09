@@ -1,17 +1,30 @@
 #!/usr/bin/env python
-"""sdpap.py
+"""
 SDPAP (SDPA Python Interface)
-
-This is the module of sdpap.
 SDPAP solves a Conic-form Linear Optimization Problem (CLP) of the form:
 minimize c^T x
 subject to Ax - b \in J,  x \in K
 K = (K.f, K.l, K.q, K.s)
 J = (J.f, J.l, J.q, J.s)
 
-September 2010, Kenta KATO
+Copyright (C) 2010-2022 SDPA Project
 
-December 2010: modified for scipy
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+September 2010: Originally written by Kenta Kato
+December 2010: Modified for SciPy
 """
 
 __all__ = ['solve']
