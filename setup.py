@@ -30,6 +30,16 @@ if not SPOOLES_INCLUDE:
 if not SPOOLES_NAME:
     SPOOLES_NAME = 'spooles'
 
+EXTRA_LIBS = []
+if platform.system()=='Windows':
+    EXTRA_LIBS = [MINGW_LIBS]
+# elif platform.system()=='Darwin':
+#     EXTRA_LIBS = [GFORTRAN_LIBS]
+
+STATIC_LIBS = ['gfortran', 'quadmath']
+if platform.system()=='Darwin':
+    STATIC_LIBS = []
+    GFORTRAN_LIBS_STATIC = list(map(lambda x : os.path.join(GFORTRAN_LIBS, x), ['libgfortran.a', 'libquadmath.a']))
 
 ext_sdpacall = Extension(
     'sdpap.sdpacall.sdpa',
@@ -37,8 +47,9 @@ ext_sdpacall = Extension(
         'sdpap/sdpacall/cmodule/sdpamodule.cpp'
     ],
     include_dirs=[SDPA_DIR, MUMPS_INCLUDE],
-    library_dirs=[SDPA_LIB, MUMPS_LIB, MUMPS_LIBSEQ], #LAPACK_DIR, BLAS_DIR],
-    libraries=['sdpa', 'dmumps', 'mumps_common', 'pord', 'mpiseq', 'gfortran', 'quadmath', LAPACK_NAME, BLAS_NAME],
+    library_dirs=[SDPA_LIB, MUMPS_LIB, MUMPS_LIBSEQ] + EXTRA_LIBS,
+    libraries=['sdpa', 'dmumps', 'mumps_common', 'pord', 'mpiseq', LAPACK_NAME, BLAS_NAME] + STATIC_LIBS,
+    extra_objects=GFORTRAN_LIBS_STATIC if platform.system()=='Darwin' else [],
     extra_link_args=['-static'] if platform.system()=='Windows' else []
 )
 
