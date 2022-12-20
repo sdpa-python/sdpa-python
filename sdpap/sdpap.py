@@ -216,9 +216,6 @@ def solve(A, b, c, K, J, option={}):
                 convert.clp_toLMI(ran_A, ran_b, ran_c, ran_K, ran_J)
         elif option['convMethod'] == 'EQ':
             maybe_print('Converting CLP format to EQ standard form.')
-            ##################################################
-            # This method is under construction
-            ##################################################
             A2, b2, c2, K2, J2 = \
                 convert.clp_toEQ(ran_A, ran_b, ran_c, ran_K, ran_J)
         else:
@@ -303,10 +300,7 @@ def solve(A, b, c, K, J, option={}):
             sdpainfo['dualObj'] = tmp
         elif option['convMethod'] == 'EQ':
             maybe_print('Retrieving result from EQ standard form...')
-            ##################################################
-            # This method is under construction
-            ##################################################
-            x, y = result_fromEQ(x2, y2, ran_K, ran_J)
+            x, y = convert.result_fromEQ(x2, y2, ran_K, ran_J)
         else:
             raise ValueError("Something wrong about option['convMethod']")
     else:

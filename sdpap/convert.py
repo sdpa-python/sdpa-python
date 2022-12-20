@@ -29,12 +29,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 September 2010: `clp_toLMI` and `result_fromLMI` written by Kenta Kato
+
+November 2022: `clp_toEQ` and `result_fromEQ` written by Usama Muneeb. Additionally,
+`clp_toLMI` code simplified and `map_sdpIndex` removed so output of `clp_toEQ`
+exactly matches SparseCoLO's `CoLOtoEQform.m` (which is a wrapper on `CoLOtoLMIform.m`)
 """
 
 from .symcone import SymCone
 from scipy.sparse import csc_matrix, bmat, eye
 from scipy import sparse
-
+import numpy as np
+import pdb
 
 def clp_toLMI(A, b, c, K, J):
     """Convert from CLP format to LMI standard form (SeDuMi dual format).
@@ -59,9 +64,6 @@ def clp_toLMI(A, b, c, K, J):
         print('clp_toLMI(): K or J is invalid.')
         return
 
-    # Get size
-    size_m, size_n = A.shape
-
     K_f = K.f
     K_l = K.l
     K_q = sum(K.q)
@@ -72,97 +74,9 @@ def clp_toLMI(A, b, c, K, J):
     J_q = sum(J.q)
     J_s = sum([i ** 2 for i in J.s])
 
-    # ----------------------------------------
-    # Make converted K.s part
-    # ----------------------------------------
-    if len(K.s) > 0:
-        # Make index mapping from converted index to original index
-        map_sdpIndex = [0] * sum([k * (k + 1) / 2 for k in K.s])
-        offset = 0
-        for k in K.s:
-            for i in range(k):
-                for j in range(i):
-                    idx1 = i * k + j
-                    idx2 = j * k + i
-                    map_sdpIndex[i * (i + 1) / 2 + j + offset] = (idx1, idx2)
-                # i == j case
-                idx = i * k + i
-                map_sdpIndex[i * (i + 1) / 2 + i + offset] = (idx, idx)
-            offset += k * (k + 1) / 2
-
-        # Split matrix
-        c_flq = c[0:(K_f + K_l + K_q), :]
-        c_s = c[(K_f + K_l + K_q):, :]
-        A_flq = A[:, 0:(K_f + K_l + K_q)]
-        A_s = A[:, (K_f + K_l + K_q):]
-
-        # To make converted matrix
-        convcs_row = []
-        convcs_val = []
-        convAs_row = []
-        convAs_col = []
-        convAs_val = []
-        addAs_row = []
-        addAs_col = []
-        col_ptr = 0
-        offset_row = 0
-        offset_col = 0
-    else:
-        map_sdpIndex = None
-
-    for sDim in K.s:
-        A_block = A_s[:, col_ptr:(col_ptr + sDim ** 2)]
-        c_block = c_s[col_ptr:(col_ptr + sDim ** 2)]
-
-        # Make conv_cs
-        for (row, val) in zip(c_block.nonzero()[0], c_block.data):
-            i = row // sDim
-            j = row % sDim
-            if i >= j:
-                convcs_row.append(i * (i + 1) / 2 + j + offset_col)
-                convcs_val.append(val * 2 if i > j else val)
-
-        # Make conv_As
-        for (row, col, val) in zip(A_block.nonzero()[0], A_block.nonzero()[1],
-                                   A_block.data):
-            i = col // sDim
-            j = col % sDim
-            if i >= j:
-                convAs_row.append(row)
-                convAs_col.append(i * (i + 1) / 2 + j + offset_col)
-                convAs_val.append(val * 2 if i > j else val)
-
-        # Make add_As
-        for i in range(sDim):
-            for j in range(i):
-                addAs_row.extend([i * sDim + j + offset_row,
-                                  j * sDim + i + offset_row])
-                idx = i * (i + 1) / 2 + j + offset_col
-                addAs_col.extend([idx, idx])
-            # i == j case
-            addAs_row.append(i * sDim + i + offset_row)
-            addAs_col.append(i * (i + 1) / 2 + i + offset_col)
-
-        col_ptr += sDim ** 2
-        offset_row += sDim ** 2
-        offset_col += sDim * (sDim + 1) / 2
-
-    # ----------------------------------------
-    # Make converted matrix
-    # ----------------------------------------
-    # A2
-    if K_s > 0:
-        newJ_s = offset_row
-        newK_s = offset_col
-        sub_A = csc_matrix((convAs_val, (convAs_row, convAs_col)),
-                           shape=(size_m, newK_s))
-        sub_As = csc_matrix(([1.0] * len(addAs_row), (addAs_row, addAs_col)),
-                            shape=(newJ_s, newK_s))
-        new_A = bmat([[A_flq, sub_A]])
-    else:
-        newJ_s = 0
-        newK_s = 0
-        new_A = A
+    newJ_s = 0
+    newK_s = 0
+    new_A = A
 
     if not sparse.isspmatrix_csc(new_A):
         new_A = new_A.tocsc()
@@ -170,87 +84,137 @@ def clp_toLMI(A, b, c, K, J):
     list_A2 = []
     list_c2 = []
     if J_f > 0:
+        print("Extracting J.f")
         A_f = new_A[0:(J_f), :]
         list_A2.append(-A_f.T)
         b_f = b[0:(J_f), :]
         list_c2.append([-b_f])
 
     if J_l > 0:
+        print("Extracting J.l")
         A_l = new_A[(J_f):(J_f + J_l), :]
         list_A2.append(-A_l.T)
         b_l = b[(J_f):(J_f + J_l), :]
         list_c2.append([-b_l])
 
-    if K_l > 0:
-        list_subAl = []
-        if K_f > 0:
-            list_subAl.append([csc_matrix((K_f, K_l))])
-        list_subAl.append([eye(K_l, K_l, format='csc')])
-        if K_q + newK_s > 0:
-            list_subAl.append([csc_matrix((K_q + newK_s, K_l))])
-        sub_Al = bmat(list_subAl)
-        list_A2.append(-sub_Al)
-        list_c2.append([csc_matrix((K_l, 1))])
-
     if J_q > 0:
+        print("Extracting J.q")
         A_q = new_A[(J_f + J_l):(J_f + J_l + J_q), :]
         list_A2.append(-A_q.T)
         b_q = b[(J_f + J_l):(J_f + J_l + J_q), :]
         list_c2.append([-b_q])
 
-    if K_q > 0:
-        list_subAq = []
-        if K_f + K_l > 0:
-            list_subAq.append([csc_matrix((K_f + K_l, K_q))])
-        list_subAq.append([eye(K_q, K_q, format='csc')])
-        if K_s > 0:
-            list_subAq.append([csc_matrix((newK_s, K_q))])
-        sub_Aq = bmat(list_subAq)
-        list_A2.append(-sub_Aq)
-        list_c2.append([csc_matrix((K_q, 1))])
-
     if J_s > 0:
+        print("Extracting J.s")
         A_s = new_A[(J_f + J_l + J_q):, :]
         list_A2.append(-A_s.T)
         b_s = b[(J_f + J_l + J_q):, :]
         list_c2.append([-b_s])
 
+    # in `CoLOtoLMIform.m` (MATLAB), free cone in K is disregarded
+
+    if K_l > 0:
+        print("Extracting K.l")
+        list_subAl = []
+        # preceding block
+        if K_f > 0:
+            list_subAl.append([csc_matrix((K_f, K_l))])
+        # this block
+        list_subAl.append([eye(K_l, K_l, format='csc')])
+        # succeeding block
+        if K_q + K_s > 0:
+            list_subAl.append([csc_matrix((K_q + K_s, K_l))])
+        sub_Al = bmat(list_subAl) # `vstack` equivalent for sparse matrix
+        list_A2.append(-sub_Al)
+        list_c2.append([csc_matrix((K_l, 1))])
+
+    if K_q > 0:
+        print("Extracting K.q")
+        list_subAq = []
+        # preceding block
+        if K_f + K_l > 0:
+            list_subAq.append([csc_matrix((K_f + K_l, K_q))])
+        # this block
+        list_subAq.append([eye(K_q, K_q, format='csc')])
+        # succeeding block
+        if K_s > 0:
+            list_subAq.append([csc_matrix((K_s, K_q))])
+        sub_Aq = bmat(list_subAq) # `vstack` equivalent for sparse matrix
+        list_A2.append(-sub_Aq)
+        list_c2.append([csc_matrix((K_q, 1))])
+
     if K_s > 0:
+        print("Extracting K.s")
         list_subAs = []
+        # preceding block
         if K_f + K_l + K_q > 0:
             list_subAs.append([csc_matrix((K_f + K_l + K_q, K_s))])
-        list_subAs.append([sub_As.T])
-        sub_As = bmat(list_subAs)
+        # this block
+        list_subAs.append([eye(K_s, K_s, format='csc')])
+        # no succeeding block required
+        sub_As = bmat(list_subAs) # `vstack` equivalent for sparse matrix
         list_A2.append(-sub_As)
         list_c2.append([csc_matrix((K_s, 1))])
 
-    A2 = bmat([list_A2])
-    c2 = bmat(list_c2)
+    A2 = bmat([list_A2], format='csr')
+    c2 = bmat(list_c2) # analog of bVect = [bVectFree; bVectLP; bVectSOCP; bVectSDP];
 
-    if newK_s > 0:
-        conv_cs = csc_matrix((convcs_val, (convcs_row, [0] * len(convcs_row))),
-                             shape=(newK_s, 1))
-        b2 = -bmat([[c_flq],
-                    [conv_cs]])
+    if K_s > 0:
+        A2_flq = A2[:K_f, :]
+        A2_s = A2[K_f:, :]
+
+        size_m, size_n = A2_s.shape
+
+        b2_flq = c[:K_f, :] # analog of `cVect`
+        b2_s = c[K_f:, :] # analog of `cVectSDP`
+
+        # `A2_s` is a block diagonal (and hence a sparse matrix)
+
+        col_ptr = 0
+
+        for sDim in K.s:
+            # A2_s.shape = (49, 56)
+            A_block = A2_s[col_ptr:(col_ptr + sDim ** 2),:]
+            b_block = b2_s[col_ptr:(col_ptr + sDim ** 2)]
+
+            LMat = np.tril(np.ones((sDim,sDim)),-1) * 2 + np.eye(sDim)
+            Lvect = LMat.flatten('F')
+
+            LMat = np.diag(Lvect)
+            nzCol = ~np.all(LMat==0, axis=0)
+            LMat = LMat[:, nzCol] # (49, 28)
+
+            LMat = np.reshape(LMat, (sDim, sDim, -1))
+            LMat = LMat + np.moveaxis(LMat, 0, 1)
+            LMat /= 2
+            LMat = np.reshape(LMat, (sDim ** 2, -1))
+
+            addACols = np.matmul(LMat.T, A_block.todense())
+            addbVect = np.matmul(LMat.T, b_block.todense())
+
+            A2 = bmat([[A2_flq],
+                    [addACols]])
+
+            b2 = -bmat([[b2_flq],
+                        [addbVect]])
+
     else:
         b2 = -c
 
     K2 = SymCone()
-    K2.f = J.f
-    K2.l = J.l + K.l
-    K2.q = J.q + K.q
-    K2.s = J.s + K.s
+    # K2.f = J.f
+    # K2.l = J.l + K.l
+    # K2.q = J.q + K.q
+    # K2.s = J.s + K.s
 
     J2 = SymCone()
-    J2.f = A2.shape[0]
+    # J2.f = A2.shape[0]
 
-    return A2, b2, c2, K2, J2, map_sdpIndex
+    return A2, b2, c2, K2, J2
 
 
 def clp_toEQ(A, b, c, K, J):
     """Convert from CLP format to Equality standard form (Sedumi primal format)
-
-    THIS FUNCTION HAS NOT IMPLEMENTED YET.
 
     Args:
       A, b, c, K, J: CLP format
@@ -258,11 +222,22 @@ def clp_toEQ(A, b, c, K, J):
     Returns:
       Equality standard form in SeDuMi primal format, (A2, b2, c2, K2, J2)
     """
-    ##################################################
-    # Under construction
-    ##################################################
-    print('THIS FUNCTION HAS NOT IMPLEMENTED YET.')
-    return A2, b2, c2, K2, J2
+
+    if not K.check_validity() or not J.check_validity():
+        print('clp_toEQ(): K or J is invalid.')
+        return
+
+    J_f = J.f
+    J_l = J.l
+    J_q = sum(J.q)
+    J_s = sum([i ** 2 for i in J.s])
+
+    if (J_l + J_q + J_s) == 0:
+        print("LOP to be converted into equality standard form is already equality standard form")
+        return A, b, c, K, J
+    else:
+        A2, b2, c2, K2, J2, map_sdpIndex = clp_toLMI(-A.T, -c, -b, J, K)
+        return A2, b2, c2, K2, J2
 
 
 def result_fromLMI(x2, y2, K, J, map_sdpIndex):
@@ -328,10 +303,8 @@ def result_fromLMI(x2, y2, K, J, map_sdpIndex):
     y = bmat(y_list)
     return x, y
 
-def result_fromEQ(x2, y2, K, J):
+def result_fromEQ(x2, y2, K, J, map_sdpIndex):
     """Get result of CLP from result of converted problem by clp_toEQ().
-
-    THIS FUNCTION HAS NOT IMPLEMENTED YET.
 
     Args:
       x2, y2: Result of converted problem by clp_toEQ()
@@ -340,9 +313,8 @@ def result_fromEQ(x2, y2, K, J):
     Returns:
       x, y  : Result of CLP, (x, y)
     """
-    ##################################################
-    # Under construction
-    ##################################################
-    print('THIS FUNCTION HAS NOT IMPLEMENTED YET.')
-    return x, y
+
+    return x2, y2
+
+    # return x, y
 
