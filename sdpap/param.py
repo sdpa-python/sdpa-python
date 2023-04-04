@@ -25,7 +25,7 @@ __all__ = ['param']
 
 import multiprocessing # for cpu count
 
-def param(option=None):
+def param(option=None, gmp_backend=False):
     """Create SDPAP parameters
 
     Args:
@@ -110,9 +110,9 @@ def param(option=None):
         'epsilonDash': 1.0E-7,
         'isSymmetric': False,
         'isDimacs': False,
-        'xPrint': '%+8.3e',
-        'yPrint': '%+8.3e',
-        'sPrint': '%+8.3e',
+        'xPrint': '%+18.12Fe' if gmp_backend else '%+8.3e',
+        'yPrint': '%+18.12Fe' if gmp_backend else '%+8.3e',
+        'sPrint': '%+18.12Fe' if gmp_backend else '%+8.3e',
         'infPrint': '%+10.16e',
         'print': 'display',
         'resultFile': '',

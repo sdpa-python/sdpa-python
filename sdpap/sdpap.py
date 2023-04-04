@@ -68,7 +68,8 @@ def solve(A, b, c, K, J, option={}):
     # --------------------------------------------------
     # Set parameter
     # --------------------------------------------------
-    option = param(option)
+    backend_info = sdpacall.get_backend_info()
+    option = param(option, backend_info["gmp"])
     maybe_print('---------- SDPAP Start ----------')
 
     # Write to output file

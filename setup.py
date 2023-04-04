@@ -3,53 +3,44 @@ import platform
 
 from setupcfg import *
 
+def pjoin(parent, children):
+    return list(map(lambda x : os.path.join(parent, x), children))
+
+if USEGMP:
+    include_dirs = pjoin(SDPA_DIR, ['.', 'mpack']) + [SPOOLES_INCLUDE] + pjoin(GMP_DIR, ['include'])
+    libraries = ['sdpa_gmp', 'spooles']
+    library_dirs = [SDPA_DIR, SPOOLES_DIR]
+    if False: # platform.system()=='Darwin':
+        extra_objects = pjoin(GMP_DIR, ['lib/libgmpxx.a'])
+    else:
+        libraries += ['gmp', 'gmpxx']
+        library_dirs += pjoin(GMP_DIR, ['lib'])
+        extra_objects = []
+else:
+    libraries = ['sdpa', 'dmumps', 'mumps_common', 'pord', 'mpiseq'] + BLAS_LAPACK_LIBS
+    library_dirs = [SDPA_DIR] + pjoin(MUMPS_DIR, ['lib', 'libseq'])
+    include_dirs = [SDPA_DIR] + pjoin(MUMPS_DIR, ['include'])
+    if platform.system()=='Darwin':
+        extra_objects = pjoin(GFORTRAN_LIBS, ['libgfortran.a', 'libquadmath.a'])
+    else:
+        libraries += ['gfortran', 'quadmath']
+        extra_objects = []
+
 if platform.system()=='Windows':
     import distutils.cygwinccompiler
     distutils.cygwinccompiler.get_msvcr = lambda: []
-else:
-    pathdict = dict((s[0].strip(), s[1].strip()) for s in
-                [line.split('=') for line in open(SDPA_MAKEINC).readlines()])
-
-    SDPA_DIR = pathdict['SDPA_DIR']
-    MUMPS_DIR = pathdict['MUMPS_DIR']
-
-
-SDPA_LIB = SDPA_DIR # + '/lib'
-SDPA_INCLUDE = SDPA_DIR + '/include'
-
-MUMPS_LIB = MUMPS_DIR + '/lib'
-MUMPS_LIBSEQ = MUMPS_DIR + '/libseq'
-MUMPS_INCLUDE = MUMPS_DIR + '/include'
-
-if not LAPACK_NAME:
-    LAPACK_NAME = 'lapack'
-if not BLAS_NAME:
-    BLAS_NAME = 'blas'
-if not SPOOLES_INCLUDE:
-    SPOOLES_INCLUDE = '/usr/include/spooles/'
-if not SPOOLES_NAME:
-    SPOOLES_NAME = 'spooles'
-
-EXTRA_LIBS = []
-if platform.system()=='Windows':
-    EXTRA_LIBS = [MINGW_LIBS]
-# elif platform.system()=='Darwin':
-#     EXTRA_LIBS = [GFORTRAN_LIBS]
-
-STATIC_LIBS = ['gfortran', 'quadmath']
-if platform.system()=='Darwin':
-    STATIC_LIBS = []
-    GFORTRAN_LIBS_STATIC = list(map(lambda x : os.path.join(GFORTRAN_LIBS, x), ['libgfortran.a', 'libquadmath.a']))
+    library_dirs += [MINGW_LIBS]
 
 ext_sdpacall = Extension(
     'sdpap.sdpacall.sdpa',
     [
         'sdpap/sdpacall/cmodule/sdpamodule.cpp'
     ],
-    include_dirs=[SDPA_DIR, MUMPS_INCLUDE],
-    library_dirs=[SDPA_LIB, MUMPS_LIB, MUMPS_LIBSEQ] + EXTRA_LIBS,
-    libraries=['sdpa', 'dmumps', 'mumps_common', 'pord', 'mpiseq', LAPACK_NAME, BLAS_NAME] + STATIC_LIBS,
-    extra_objects=GFORTRAN_LIBS_STATIC if platform.system()=='Darwin' else [],
+    include_dirs=include_dirs,
+    library_dirs=library_dirs,
+    libraries=libraries,
+    extra_objects=extra_objects,
+    extra_compile_args=['-DUSEGMP=1'] if USEGMP else ['-DUSEGMP=0'],
     extra_link_args=['-static'] if platform.system()=='Windows' else []
 )
 
@@ -73,8 +64,8 @@ ext_spcolo = Extension(
         'sdpap/spcolo/cmodule/spcolo_ordering.cpp'
     ],
     include_dirs=['sdpap/spcolo/cmodule', SPOOLES_INCLUDE],
-    library_dirs=[SPOOLES_DIR] if platform.system()=='Darwin' else [],
-    libraries=[SPOOLES_NAME],
+    library_dirs=[SPOOLES_DIR],
+    libraries=['spooles'],
     extra_link_args=['-static'] if platform.system()=='Windows' else []
 )
 
@@ -82,8 +73,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name='sdpa-python',
-    version='0.1',
+    name='sdpa-multiprecision' if USEGMP else 'sdpa-python',
+    version='0.2',
     maintainer='Usama Muneeb',
     url='https://sdpa-python.github.io',
     description='SDPA (SemiDefinite Programming Algorithm) for Python',
@@ -101,7 +92,7 @@ setup(
         ext_fvelim,
         ext_spcolo
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 
     classifiers=[
         'Development Status :: 3 - Alpha',

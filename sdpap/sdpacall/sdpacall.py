@@ -29,6 +29,8 @@ from sdpap.symcone import SymCone
 from scipy.sparse import csr_matrix
 from scipy import sparse, array
 
+def get_backend_info():
+  return sdpa.get_backend_info()
 
 def solve_sdpa(A, b, c, K, option):
     """Solve SDP with sdpa

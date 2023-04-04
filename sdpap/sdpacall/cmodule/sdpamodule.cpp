@@ -37,6 +37,9 @@ using sdpa::Time;
 #define lengthOfString 10240
 #define MX_DEBUG 0
 
+#if USEGMP
+#include <gmpxx.h>
+#endif
 /* ============================================================
    Message
    ============================================================ */
@@ -77,6 +80,10 @@ using sdpa::Time;
   }
 
 
+static PyObject* get_backend_info(PyObject *self, PyObject *args)
+{
+    return Py_BuildValue("{s:i}", "gmp", USEGMP);
+}
 
 /* ============================================================
    sdpamodule.sedumiwrap(At, b, c, dictK, option)
@@ -105,6 +112,9 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     strcpy(string_time, ctime(&ltime));
     string_time[strlen(string_time) - 1] = '\0';
 
+#if USEGMP
+    mpf_set_default_prec(200);
+#endif
     SDPA sdpa;
 
     int maxIteration = 0;
@@ -128,7 +138,11 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     /* temporary variables */
     mwIndex k;
     int size;
+#if USEGMP
+    mpf_class* tmp_ptr = NULL;
+#else
     double* tmp_ptr = NULL;
+#endif
     char* tmpPrint = NULL;
     PyObject* tmpObj;
 
@@ -249,15 +263,26 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     sdpa.setResultFile(fpResult);
 
     if (fp) {
+#if USEGMP
+        fprintf( fp,"SDPA Multiprecision start at [%s]\n",string_time );
+#else
         fprintf( fp,"SDPA start at [%s]\n",string_time );
+#endif
     }
     if (fpResult) {
+#if USEGMP
+        fprintf( fpResult,"SDPA Multiprecision start at [%s]\n",string_time );
+#else
         fprintf( fpResult,"SDPA start at [%s]\n",string_time );
+#endif
     }
 
     /* numThreads */
+#if USEGMP
+#else
     tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "numThreads");
     sdpa.setNumThreads((int)PyLong_AsLong(tmpObj));
+#endif
 
 #if MX_DEBUG
     rMessage("");
@@ -579,11 +604,18 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         fprintf(fp, "Converting optimal solution to CLP format\n");
     }
 
+    double read_double;
+
     /* Optimal value for xVec */
     tmp_ptr = sdpa.getResultXVec();
     if (tmp_ptr != NULL) {
         for (k = 0; k < mDim; k++) {
-            PyList_SetItem(y_ptr, k, PyFloat_FromDouble(tmp_ptr[k]));
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[k].get_mpf_t());
+#else
+            read_double = tmp_ptr[k];
+#endif
+            PyList_SetItem(y_ptr, k, PyFloat_FromDouble(read_double));
         }
     }
 
@@ -592,7 +624,12 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(1);
         tmp_ptr = sdpa.getResultYMat(1);
         for (int index = 0; index < size; index++) {
-            PyList_SetItem(x_ptr, index, PyFloat_FromDouble(tmp_ptr[index]));
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
+            PyList_SetItem(x_ptr, index, PyFloat_FromDouble(read_double));
         }
     }
 
@@ -600,8 +637,13 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(l + isK_l + 1);
         tmp_ptr = sdpa.getResultYMat(l + isK_l + 1);
         for (int index = 0; index < size; index++) {
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
             PyList_SetItem(x_ptr, K_l + K_socpConeStart[l] + index,
-                           PyFloat_FromDouble(tmp_ptr[index]));
+                           PyFloat_FromDouble(read_double));
         }
     }
 
@@ -609,8 +651,13 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(l + isK_l + K_socpNoCones + 1);
         tmp_ptr = sdpa.getResultYMat(l + isK_l + K_socpNoCones + 1);
         for (int index = 0; index < size * size; index++) {
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
             PyList_SetItem(x_ptr, K_l + size_Kq + K_sdpConeStart[l] + index,
-                           PyFloat_FromDouble(tmp_ptr[index]));
+                           PyFloat_FromDouble(read_double));
         }
     }
 
@@ -619,7 +666,12 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(1);
         tmp_ptr = sdpa.getResultXMat(1);
         for (int index = 0; index < size; index++) {
-            PyList_SetItem(s_ptr, index, PyFloat_FromDouble(tmp_ptr[index]));
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
+            PyList_SetItem(s_ptr, index, PyFloat_FromDouble(read_double));
         }
     }
 
@@ -627,8 +679,13 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(l + isK_l + 1);
         tmp_ptr = sdpa.getResultXMat(l + isK_l + 1);
         for (int index = 0; index < size; index++) {
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
             PyList_SetItem(s_ptr, K_l + K_socpConeStart[l] + index,
-                           PyFloat_FromDouble(tmp_ptr[index]));
+                           PyFloat_FromDouble(read_double));
         }
     }
 
@@ -636,13 +693,20 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
         size = sdpa.getBlockSize(l + isK_l + K_socpNoCones + 1);
         tmp_ptr = sdpa.getResultXMat(l + isK_l + K_socpNoCones + 1);
         for (int index = 0; index < size * size; index++) {
+#if USEGMP
+            read_double = mpf_get_d(tmp_ptr[index].get_mpf_t());
+#else
+            read_double = tmp_ptr[index];
+#endif
             PyList_SetItem(s_ptr, K_l + size_Kq + K_sdpConeStart[l] + index,
-                           PyFloat_FromDouble(tmp_ptr[index]));
+                           PyFloat_FromDouble(read_double));
         }
     }
 
     TimeEnd(SDPA_RETRIEVE_END);
 
+#if USEGMP
+#else
     /* Dimacs Error Information */
     if (nDimacs != 0) {
         printf("Computing Dimacs Error\n");
@@ -657,6 +721,7 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
                                            dimacs_error[5],
                                            dimacs_error[6]));
     }
+#endif
 
     /* Phase information */
     PyDict_SetItemString((PyObject*)info_ptr, "phasevalue",
@@ -667,32 +732,62 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
                          Py_BuildValue("i", sdpa.getIteration()));
 
     /* primalObj */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getDualObj().get_mpf_t());
+#else
+            read_double = sdpa.getDualObj();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "primalObj",
-                         Py_BuildValue("d", -sdpa.getDualObj()));
+                         Py_BuildValue("d", -read_double));
 
     /* dualObj */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getPrimalObj().get_mpf_t());
+#else
+            read_double = sdpa.getPrimalObj();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "dualObj",
-                         Py_BuildValue("d", -sdpa.getPrimalObj()));
+                         Py_BuildValue("d", -read_double));
 
     /* primalError */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getDualError().get_mpf_t());
+#else
+            read_double = sdpa.getDualError();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "primalError",
-                         Py_BuildValue("d", sdpa.getDualError()));
+                         Py_BuildValue("d", read_double));
 
     /* dualError */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getPrimalError().get_mpf_t());
+#else
+            read_double = sdpa.getPrimalError();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "dualError",
-                         Py_BuildValue("d", sdpa.getPrimalError()));
+                         Py_BuildValue("d", read_double));
 
     /* digits */
     PyDict_SetItemString((PyObject*)info_ptr, "digits",
                          Py_BuildValue("d", sdpa.getDigits()));
 
     /* dualityGap */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getDualityGap().get_mpf_t());
+#else
+            read_double = sdpa.getDualityGap();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "dualityGap",
-                         Py_BuildValue("d", sdpa.getDualityGap()));
+                         Py_BuildValue("d", read_double));
 
     /* mu */
+#if USEGMP
+            read_double = mpf_get_d(sdpa.getMu().get_mpf_t());
+#else
+            read_double = sdpa.getMu();
+#endif
     PyDict_SetItemString((PyObject*)info_ptr, "mu",
-                         Py_BuildValue("d", sdpa.getMu()));
+                         Py_BuildValue("d", read_double));
 
     /* solveTime */
     PyDict_SetItemString((PyObject*)info_ptr, "solveTime",
@@ -716,10 +811,18 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     string_time[strlen(string_time) - 1] = '\0';
 
     if (fp) {
+#if USEGMP
+        fprintf(fp,"SDPA Multiprecision end at [%s]\n", string_time);
+#else
         fprintf(fp,"SDPA end at [%s]\n", string_time);
+#endif
     }
     if (fpResult) {
+#if USEGMP
+        fprintf(fpResult,"SDPA Multiprecision end at [%s]\n", string_time);
+#else
         fprintf(fpResult,"SDPA end at [%s]\n", string_time);
+#endif
     }
 
     /* close output file */
@@ -750,7 +853,11 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     rMessage("");
 #endif
 
+/*
+    This is automatically called by the destructor of the SDPA class.
+    Calling twice results in problems with the multiprecision backend.
     sdpa.terminate();
+*/
 
 #if MX_DEBUG
     rMessage("");
@@ -768,6 +875,7 @@ PyDoc_STRVAR(sdpa__doc__, "SDPA: SDPAP internal API.\n **** CAUTION **** \nDo NO
 static PyObject* sdpamodule;
 
 static PyMethodDef sdpa_methods[] = {
+    {"get_backend_info", (PyCFunction)get_backend_info, METH_VARARGS, "Returns backend information."},
     {"sedumiwrap", (PyCFunction) sedumiwrap, METH_VARARGS | METH_KEYWORDS, doc_sedumiwrap},
     {NULL, NULL, 0, NULL}
 };
