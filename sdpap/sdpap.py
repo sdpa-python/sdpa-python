@@ -364,11 +364,31 @@ def solve(A, b, c, K, J, option={}):
         sdpainfo['dualObj'] += gamma
 
     sdpapinfo = dict()
-    sdpapinfo['primalObj'] = (c.T * x)[0,0]
-    sdpapinfo['dualObj'] = (b.T * y)[0,0]
+    sdpapinfo['primalObj'] = sdpainfo['primalObj'] # (c.T * x)[0,0]
+    sdpapinfo['dualObj'] = sdpainfo['dualObj'] # (b.T * y)[0,0]
     sdpapinfo['dualityGap'] = sdpaputils.get_dualitygap(x, y, b, c)
     sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
     sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
+
+    """
+    SDPAP input is in CLP format (generalization of SeDuMi)
+
+    Get the status of the primal of the original CLP
+    The status returned to us is that of the dual of the SeDuMi
+    """
+    GET_PRIMAL_STATUS_FROM_DUAL = {
+        "noINFO": "noINFO",
+        "pFEAS": "dFEAS", # flip
+        "dFEAS": "pFEAS", # flip
+        "pdFEAS": "pdFEAS",
+        "pdINF": "pdINF",
+        "pFEAS_dINF": "pINF_dFEAS",  # flip
+        "pINF_dFEAS": "pFEAS_dINF",  # flip
+        "pdOPT": "pdOPT",
+        "pUNBD": "dUNBD",  # flip
+        "dUNBD": "pUNBD"  # flip
+    }
+    sdpapinfo['phasevalue'] = GET_PRIMAL_STATUS_FROM_DUAL[sdpainfo['phasevalue']]
 
     # --------------------------------------------------
     # Print result
