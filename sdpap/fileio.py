@@ -163,8 +163,8 @@ def writeproblem(filename, A, b, c, K, J, accuracy="%+8.16e"):
     if not sparse.isspmatrix_csc(c):
         c = csc_matrix(c)
 
-    if not sparse.isspmatrix_csc(A):
-        A = csc_matrix(A)
+    if not sparse.isspmatrix_csr(A):
+        A = csr_matrix(A)
 
     fp = open(filename, "w")
     # Write J
@@ -468,8 +468,8 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
     if J.l > 0 or len(J.q) > 0 or len(J.s) > 0:
         raise ValueError("SymCone J must only have attribute 'f'")
 
-    if not sparse.isspmatrix_csc(A):
-        A = A.tocsc()
+    if not sparse.isspmatrix_csr(A):
+        A = A.tocsr()
     if not sparse.isspmatrix_csc(b):
         b = b.tocsc()
     if not sparse.isspmatrix_csc(c):
@@ -478,9 +478,11 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
     # Note that primal-dual is reverse in SeDuMi.
     # So c2 must be -c2.
     # In addition, A2 should be passed in the transposed style.
-    c2 = -c
-    b2 = -b
-    A2 = -A
+    # December 2023 edit: to maintain consistency with `writeproblem` method
+    # (that exports to CLP format) this sign flipping is being omitted here.
+    c2 = c
+    b2 = b
+    A2 = A
 
     fp = open(filename, "w")
 
