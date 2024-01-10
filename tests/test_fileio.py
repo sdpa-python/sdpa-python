@@ -72,6 +72,10 @@ class TestReadWriteCLP():
     def test_clp_consistency_3(self):
         return check_clp_consistency('example3.clp')
 
+    # this is provided with SDPAP user manual
+    def test_clp_consistency_4(self):
+        return check_clp_consistency('sdpa_example.clp')
+
 
 class TestReadWriteSDPA():
     # this is provided with SDPA source code as well as user manuals
