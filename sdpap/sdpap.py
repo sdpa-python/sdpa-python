@@ -38,7 +38,7 @@ from .sdpacall import sdpacall
 from .spcolo import spcolo
 from .fvelim import fvelim
 from scipy import sparse
-from numpy import matrix
+import numpy as np
 import copy
 import time
 
@@ -84,12 +84,19 @@ def solve(A, b, c, K, J, option={}):
     if not K.check_validity() or not J.check_validity():
         return None
 
-    if not isinstance(b, matrix) and not sparse.issparse(b):
-        raise TypeError('sdpap.solve(): b must be a matrix or a sparse matrix.')
-    if not isinstance(c, matrix) and not sparse.issparse(c):
-        raise TypeError('sdpap.solve(): c must be a matrix or a sparse matrix.')
-    if not isinstance(A, matrix) and not sparse.issparse(A):
-        raise TypeError('sdpap.solve(): A must be a matrix or a sparse matrix.')
+    if not isinstance(b, np.ndarray) and not sparse.issparse(b):
+        raise TypeError('sdpap.solve(): b must be a np.ndarray or a sparse matrix.')
+    if not isinstance(c, np.ndarray) and not sparse.issparse(c):
+        raise TypeError('sdpap.solve(): c must be a np.ndarray or a sparse matrix.')
+    if not isinstance(A, np.ndarray) and not sparse.issparse(A):
+        raise TypeError('sdpap.solve(): A must be a np.ndarray or a sparse matrix.')
+
+    if isinstance(b, np.ndarray) and len(b.shape) > 2:
+        raise ValueError('sdpap.solve(): Expected 1D or 2D ndarray for b')
+    if isinstance(c, np.ndarray) and len(c.shape) > 2:
+        raise ValueError('sdpap.solve(): Expected 1D or 2D ndarray for c')
+    if isinstance(A, np.ndarray) and len(A.shape) != 2:
+        raise ValueError('sdpap.solve(): Expected 2D ndarray for A')
 
     if not sparse.isspmatrix_csc(b):
         b = sparse.csc_matrix(b)

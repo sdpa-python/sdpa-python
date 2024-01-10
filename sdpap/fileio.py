@@ -480,11 +480,11 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
         raise ValueError("SymCone J must only have attribute 'f'")
 
     if not sparse.isspmatrix_csr(A):
-        A = A.tocsr()
+        A = csr_matrix(A)
     if not sparse.isspmatrix_csc(b):
-        b = b.tocsc()
+        b = csc_matrix(b)
     if not sparse.isspmatrix_csc(c):
-        c = c.tocsc()
+        c = csc_matrix(c)
 
     # Note that primal-dual is reverse in SeDuMi.
     # So c2 must be -c2.
