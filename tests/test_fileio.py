@@ -88,3 +88,7 @@ class TestReadWriteSDPA():
     def test_sdpa_consistency_4(self):
         return check_sdpa_consistency('theta6.dat-s')
 
+    # This contains some zero rows
+    def test_sdpa_consistency_5(self):
+        return check_sdpa_consistency('ss30.dat-s')
+

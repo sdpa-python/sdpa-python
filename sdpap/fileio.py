@@ -125,6 +125,8 @@ def readproblem(filename):
 
     for line in fp.readlines():
         ROW, COL, row, col, val = line.rstrip().split(" ")[0:5]
+        if float(val)==0:
+            continue
         if int(ROW) == 0:
             c_index.append(start_col[int(COL) - 1] + int(col) - 1)
             c_val.append(float(val))
@@ -355,10 +357,14 @@ def fromsdpa(filename):
     for line in lineList:
         row, block, colI, colJ, val = line.split()[0:5]
         row = int(row.strip(',')) - 1
+        # if (row+1) > J.f:
+        #     break
         block = int(block.strip(',')) - 1
         colI = int(colI.strip(',')) - 1
         colJ = int(colJ.strip(',')) - 1
         val = float(val.strip(','))
+        if val==0:
+            continue
         col = colI * blockSize[block] + colJ \
               if blockType[block] == 'S' else colI
         col2 = colJ * blockSize[block] + colI \
