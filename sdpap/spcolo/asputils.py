@@ -36,7 +36,8 @@ from sdpap.matdata import MatData
 from . import spcoloext
 from .clique import CliqueSet
 from scipy.sparse import csc_matrix, tril
-from scipy import array, sparse
+from scipy import sparse
+# from numpy import array
 
 def getASP(A, c, K_s):
     """Get Aggregate Sparsity Pattern

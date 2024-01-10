@@ -28,7 +28,8 @@ from sdpap.symcone import SymCone
 from sdpap.matdata import MatData
 from scipy.sparse import csc_matrix, csr_matrix, bmat, eye
 from scipy.sparse.linalg import spsolve
-from scipy import sparse, ones
+from scipy import sparse
+from numpy import ones
 
 def split(A, b, c, K, rho):
     """Eliminate free variables by Split method

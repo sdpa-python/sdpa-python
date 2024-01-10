@@ -21,7 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 December 2010: Originally written by Kenta Kato
 """
 
-from scipy import sparse, array
+from scipy import sparse
+from numpy import array
 
 class MatData(object):
     """Description of a sparse matrix

@@ -27,7 +27,8 @@ from . import sdpa
 from sdpap.matdata import MatData
 from sdpap.symcone import SymCone
 from scipy.sparse import csr_matrix
-from scipy import sparse, array
+from scipy import sparse
+from numpy import array
 
 def get_backend_info():
   return sdpa.get_backend_info()

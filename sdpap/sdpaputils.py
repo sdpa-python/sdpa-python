@@ -23,7 +23,7 @@ December 2010: Originally written by Kenta Kato
 __all__ = ['get_dualitygap', 'get_primalerror', 'get_dualerror']
 
 from .symcone import SymCone
-from scipy.sparse.linalg.eigen import arpack
+from scipy.sparse.linalg import eigs
 from scipy.sparse import csc_matrix
 from scipy import sparse
 
@@ -111,10 +111,10 @@ def get_primalerror(x, A, b, J):
             # scipy.sparse.linalg.eigs raises a TypeError if mat is sparse and
             # k (1 in this case) is >= n (no. of rows of mat) - 1
             if mat.shape[0] <= 2:
-                eig = arpack.eigs(mat.toarray(), k=1, which='SM',
+                eig = eigs(mat.toarray(), k=1, which='SM',
                                   return_eigenvectors=False)[0]
             else:
-                eig = arpack.eigs(mat, k=1, which='SM',
+                eig = eigs(mat, k=1, which='SM',
                                   return_eigenvectors=False)[0]
 
             if eig < 0:

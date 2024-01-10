@@ -28,7 +28,6 @@ from . import convert
 from .symcone import SymCone
 from scipy.sparse import csc_matrix, csr_matrix
 from scipy import sparse
-from numpy import matrix
 
 
 def readproblem(filename):
@@ -348,7 +347,13 @@ def fromsdpa(filename):
     while b_str.count('') > 0:
         b_str.remove('')
 
-    b = csr_matrix(matrix(list(map(float, [s for s in b_str])))).T
+    """
+    The documented way to use `csr_matrix` is to provide it an ndarray
+    of rank-2. However, directly providing a list seems to work as well.
+    If in future this causes a problem, wrap the argument of `csr_matrix`
+    with np.array([...])
+    """
+    b = csr_matrix(list(map(float, [s for s in b_str]))).T
 
     # read c and A
     blockElements_c = [[] for i in range(nBlock)]
