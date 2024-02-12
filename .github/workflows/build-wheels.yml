@@ -19,8 +19,6 @@ jobs:
         os: [ ubuntu-22.04, macos-12, windows-2022 ]
         arch: [ x86_64 ]
         include:
-          - os: macos-12
-            arch: arm64
           - os: ubuntu-22.04
             arch: aarch64
 
