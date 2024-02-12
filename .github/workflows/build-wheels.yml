@@ -95,12 +95,14 @@ jobs:
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || env.PUSH_WHEELS == 'TEST'}}
       shell: bash
       run: |
+        python -m pip install --upgrade twine
         twine upload --skip-existing --repository testpypi wheelhouse/* -u $TEST_PYPI_USER -p $TEST_PYPI_PASSWORD
 
     - name:  Release to PyPI
       if: ${{ env.PUSH_WHEELS == 'YES' }}
       shell: bash
       run: |
+        python -m pip install --upgrade twine
         twine upload --skip-existing wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
   build_regular:
