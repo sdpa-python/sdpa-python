@@ -108,6 +108,7 @@ def param(option=None, gmp_backend=False):
         'betaBar': 0.2,
         'gammaStar': 0.9,
         'epsilonDash': 1.0E-7,
+        'mpfPrecision': 200,
         'isSymmetric': False,
         'isDimacs': False,
         'xPrint': '%+18.12Fe' if gmp_backend else '%+8.3e',
@@ -202,6 +203,13 @@ def param(option=None, gmp_backend=False):
         print("option.epsilonDash must be float.\n"
               "Default value is set.")
         option['epsilonDash'] = option0['epsilonDash']
+
+    if 'mpfPrecision' not in option:
+        option['mpfPrecision'] = option0['mpfPrecision']
+    elif not isinstance(option['mpfPrecision'], int):
+        print("option.mpfPrecision must be integer.\n"
+              "Default value is set.")
+        option['mpfPrecision'] = option0['mpfPrecision']
 
     if 'searchDir' in option:
         print("Parameter *searchDir* is no longer supported.\n"

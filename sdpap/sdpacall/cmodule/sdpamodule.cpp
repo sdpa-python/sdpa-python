@@ -112,8 +112,13 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     strcpy(string_time, ctime(&ltime));
     string_time[strlen(string_time) - 1] = '\0';
 
+    PyObject* tmpObj;
+
 #if USEGMP
-    mpf_set_default_prec(200);
+    /* Get numerical precision from solver options */
+    tmpObj = PyDict_GetItemString((PyObject*)option_ptr, "mpfPrecision");
+    int mpfPrecision = (int)PyLong_AsLong(tmpObj);
+    mpf_set_default_prec(mpfPrecision);
 #endif
     SDPA sdpa;
 
@@ -144,7 +149,6 @@ static PyObject* sedumiwrap(PyObject* self, PyObject* args, PyObject* kwrds)
     double* tmp_ptr = NULL;
 #endif
     char* tmpPrint = NULL;
-    PyObject* tmpObj;
 
     TimeStart(SDPA_START);
     TimeStart(SDPA_CONVERT_START);
