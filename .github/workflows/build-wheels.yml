@@ -1,0 +1,202 @@
+name: build-wheels
+
+on: [push]
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+jobs:
+  build_multiprecision:
+    runs-on: ${{ matrix.os }}
+    env:
+      PUSH_WHEELS: ${{ secrets.PUSH_WHEELS }}
+      TEST_PYPI_USER: ${{ secrets.TEST_PYPI_USER }}
+      TEST_PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      PYPI_USER: ${{ secrets.PYPI_USER }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macos-12, windows-2022 ]
+        arch: [ x86_64 ]
+        include:
+          - os: macos-12
+            arch: arm64
+          - os: ubuntu-22.04
+            arch: aarch64
+
+    steps:
+
+    - name: Checkout SDPA Python
+      uses: actions/checkout@v4
+      with:
+        path: sdpa-python
+
+    - name: Checkout SDPA Multiprecision
+      uses: actions/checkout@v4
+      with:
+        path: sdpa-multiprecision
+        repository: sdpa-python/sdpa-multiprecision
+
+    - name: Install Requirements (Windows)
+      if: ${{ matrix.os == 'windows-2022' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: mingw64
+        location: D:\
+        # release: false
+        install: >-
+          make
+        pacboy: >-
+          toolchain:p
+          autotools:p
+          spooles:p
+        update: true
+
+    - name: Building libsdpa and preparing setupcfg.py (Windows)
+      if: ${{ matrix.os == 'windows-2022' }}
+      shell: 'msys2 {0}'
+      run: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
+
+    - name: Set up QEMU (Linux)
+      if: ${{ runner.os == 'Linux' && matrix.arch == 'aarch64' }}
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+
+    - name: Build wheels
+      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
+      uses: pypa/cibuildwheel@v2.16.5
+      env:
+        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
+        CIBW_ENVIRONMENT_MACOS: RUNNER_ARCH=${{ matrix.arch }}
+        CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
+        CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
+        CIBW_BEFORE_ALL_MACOS: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
+        CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
+        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_ARCHS_MACOS: ${{ matrix.arch }}
+        # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+      with:
+        package-dir: ./sdpa-python
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Check wheels
+      if: ${{ runner.os != 'Linux' || matrix.arch != 'aarch64' }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade twine
+        twine check wheelhouse/*
+
+    - name:  Release to Test PyPI
+      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || env.PUSH_WHEELS == 'TEST'}}
+      shell: bash
+      run: |
+        twine upload --skip-existing --repository testpypi wheelhouse/* -u $TEST_PYPI_USER -p $TEST_PYPI_PASSWORD
+
+    - name:  Release to PyPI
+      if: ${{ env.PUSH_WHEELS == 'YES' }}
+      shell: bash
+      run: |
+        twine upload --skip-existing wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
+
+  build_regular:
+    runs-on: ${{ matrix.os }}
+    env:
+      PUSH_WHEELS: ${{ secrets.PUSH_WHEELS }}
+      TEST_PYPI_USER: ${{ secrets.TEST_PYPI_USER }}
+      TEST_PYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
+      PYPI_USER: ${{ secrets.PYPI_USER }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-22.04, macos-12, windows-2022 ]
+        arch: [ x86_64 ]
+        include:
+          - os: ubuntu-22.04
+            arch: aarch64
+
+    steps:
+
+    - name: Checkout SDPA Python
+      uses: actions/checkout@v4
+      with:
+        repository: usamamuneeb/sdpa-python
+        path: sdpa-python
+
+    - name: Install Requirements (Windows)
+      if: ${{ matrix.os == 'windows-2022' }}
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: mingw64
+        location: D:\
+        # release: false
+        install: >-
+          make
+        pacboy: >-
+          toolchain:p
+          lapack:p
+          openblas:p
+          spooles:p
+        update: true
+
+    - name: Building libsdpa and preparing setupcfg.py (Windows)
+      if: ${{ matrix.os == 'windows-2022' }}
+      shell: 'msys2 {0}'
+      run: source sdpa-python/continuous_integration/build_libsdpa.sh
+
+    - name: Install Requirements (macOS)
+      if: ${{ matrix.os == 'macos-12' }}
+      uses: fortran-lang/setup-fortran@v1
+
+    - name: Set up QEMU (Linux)
+      if: ${{ runner.os == 'Linux' && matrix.arch == 'aarch64' }}
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+
+    - name: Build wheels
+      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
+      uses: pypa/cibuildwheel@v2.16.5
+      env:
+        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
+        CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa.sh
+        CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
+        CIBW_BEFORE_ALL_MACOS: source sdpa-python/continuous_integration/build_libsdpa.sh
+        # CIBW_BUILD_FRONTEND: "build"
+        CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
+        CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+        CIBW_ARCHS_MACOS: ${{ matrix.arch }}
+        # CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+      with:
+        package-dir: ./sdpa-python
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Check wheels
+      if: ${{ runner.os != 'Linux' || matrix.arch != 'aarch64' }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade twine
+        twine check wheelhouse/*
+
+    - name:  Release to Test PyPI
+      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || env.PUSH_WHEELS == 'TEST'}}
+      shell: bash
+      run: |
+        python -m pip install --upgrade twine
+        twine upload --skip-existing --repository testpypi wheelhouse/* -u $TEST_PYPI_USER -p $TEST_PYPI_PASSWORD
+
+    - name:  Release to PyPI
+      if: ${{ env.PUSH_WHEELS == 'YES' }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade twine
+        twine upload --skip-existing wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD

@@ -1,0 +1,48 @@
+name: run-cvxpy-tests
+
+on: [push]
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+jobs:
+  run-cvxpy-tests:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [ regular, multiprecision ]
+
+    steps:
+
+    - name: Checkout SDPA Python
+      uses: actions/checkout@v4
+      with:
+        path: sdpa-python
+
+    - name: Checkout SDPA Multiprecision (only required for libsdpa_gmp)
+      if: ${{ matrix.backend == 'multiprecision' }}
+      uses: actions/checkout@v4
+      with:
+        path: sdpa-multiprecision
+        repository: sdpa-python/sdpa-multiprecision
+
+    - name: Build libsdpa
+      if: ${{ matrix.backend == 'regular' }}
+      run: source sdpa-python/continuous_integration/build_libsdpa.sh
+
+    - name: Build libsdpa_gmp
+      if: ${{ matrix.backend == 'multiprecision' }}
+      run: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
+
+    - name: Install Python
+      uses: actions/setup-python@v4
+
+    - name: Install packages via pip and run CVXPY tests
+      run: |
+        cd sdpa-python
+        pip install scipy==1.9.3 numpy==1.23.4 cvxpy-base pytest
+        pip install .
+        mv sdpap sdpap_bak
+        curl -O https://raw.githubusercontent.com/cvxpy/cvxpy/master/cvxpy/tests/test_conic_solvers.py
+        pytest tests
+        pytest test_conic_solvers.py -k TestSDPA
