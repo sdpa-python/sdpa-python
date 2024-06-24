@@ -127,7 +127,6 @@ jobs:
     - name: Checkout SDPA Python
       uses: actions/checkout@v4
       with:
-        repository: usamamuneeb/sdpa-python
         path: sdpa-python
 
     - name: Install Requirements (Windows)
@@ -141,6 +140,7 @@ jobs:
           make
         pacboy: >-
           toolchain:p
+          gcc-fortran:p
           lapack:p
           openblas:p
           spooles:p
