@@ -374,8 +374,8 @@ def solve(A, b, c, K, J, option={}):
     sdpapinfo['primalObj'] = sdpainfo['primalObj'] # (c.T * x)[0,0]
     sdpapinfo['dualObj'] = sdpainfo['dualObj'] # (b.T * y)[0,0]
     sdpapinfo['dualityGap'] = sdpaputils.get_dualitygap(x, y, b, c)
-    sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
-    sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
+    # sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
+    # sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
 
     """
     SDPAP input is in CLP format (generalization of SeDuMi)
@@ -417,8 +417,8 @@ def solve(A, b, c, K, J, option={}):
     maybe_print("     primalObj = %+10.16e" % sdpapinfo['primalObj'])
     maybe_print("       dualObj = %+10.16e" % sdpapinfo['dualObj'])
     maybe_print("    dualityGap = %+10.16e" % sdpapinfo['dualityGap'])
-    maybe_print("   primalError = %+10.16e" % sdpapinfo['primalError'])
-    maybe_print("     dualError = %+10.16e" % sdpapinfo['dualError'])
+    # maybe_print("   primalError = %+10.16e" % sdpapinfo['primalError'])
+    # maybe_print("     dualError = %+10.16e" % sdpapinfo['dualError'])
     maybe_print("   convertTime = %f" % timeinfo['convert'])
     maybe_print("     solveTime = %f" % timeinfo['sdpa'])
     maybe_print("retrievingTime = %f" % timeinfo['retrieve'])
