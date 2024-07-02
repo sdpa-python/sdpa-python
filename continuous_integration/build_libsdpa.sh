@@ -68,8 +68,8 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
     sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_INCLUDE =.*@SPOOLES_INCLUDE="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
-    # check if /usr/local/opt/gcc/lib/gcc/13 is more generic
-    sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc\/13.2.0\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+    # sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc\/14.1.0_1\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+    sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
 else
     sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
