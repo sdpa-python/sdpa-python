@@ -65,13 +65,14 @@ jobs:
 
     - name: Build wheels
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
-      uses: pypa/cibuildwheel@v2.16.5
+      uses: pypa/cibuildwheel@v2.19.2
       env:
         CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
-        CIBW_ENVIRONMENT_MACOS: RUNNER_ARCH=${{ matrix.arch }}
+        CIBW_ENVIRONMENT_MACOS: RUNNER_ARCH=${{ matrix.arch }} MACOSX_DEPLOYMENT_TARGET="12.0"
         CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
         CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
         CIBW_BEFORE_ALL_MACOS: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
+        CIBW_BUILD_FRONTEND: "build"
         CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_ARCHS_MACOS: ${{ matrix.arch }}
@@ -163,13 +164,14 @@ jobs:
 
     - name: Build wheels
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
-      uses: pypa/cibuildwheel@v2.16.5
+      uses: pypa/cibuildwheel@v2.19.2
       env:
         CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
+        CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET="12.0"
         CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa.sh
         CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
         CIBW_BEFORE_ALL_MACOS: source sdpa-python/continuous_integration/build_libsdpa.sh
-        # CIBW_BUILD_FRONTEND: "build"
+        CIBW_BUILD_FRONTEND: "build"
         CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
         CIBW_ARCHS_LINUX: ${{ matrix.arch }}
         CIBW_ARCHS_MACOS: ${{ matrix.arch }}
