@@ -20,7 +20,7 @@ cd sdpa-7.3.18
 # MUMPS package (even if there is no new `sdpa` release at sdpa.sourceforge.net)
 # Please check the bottom of this webpage for latest MUMPS available:
 # http://ftp.de.debian.org/debian/pool/main/m/mumps/
-sed -i.bak 's/MUMPS_VER =.*/MUMPS_VER = 5.7.1/' mumps/Makefile
+sed -i.bak 's/MUMPS_VER =.*/MUMPS_VER = 5.7.3/' mumps/Makefile
 # `wget` may not be available but `curl` almost always is
 sed -i.bak 's/wget/curl -L -O/' mumps/Makefile
 
@@ -32,6 +32,8 @@ fi
 
 # Build SDPA and MUMPS and `cd` back into main directory
 make
+./sdpa example1.dat example1.out
+
 cd $GITHUB_WORKSPACE
 
 # Build SPOOLES or provide location to system spooles
@@ -47,11 +49,22 @@ if [[ "$RUNNER_OS" != "Windows" ]]; then
         # this patch is critical only on Ubuntu
         curl -O https://raw.githubusercontent.com/sdpa-python/sdpa-multiprecision/main/spooles/patches/patch-timings.h
         patch -p0 < patch-timings.h
+    elif [[ "$RUNNER_OS" == "macOS" ]] && [[ "$RUNNER_ARCH" == "arm64" ]]; then
+        # solves
+        # error: incompatible pointer to integer conversion passing 'void *' to parameter of type 'int' [-Wint-conversion]
+        # while building SPOOLES on M1
+        sed -i.bak 's/^  CFLAGS =.*/& -Wno-int-conversion/' Make.inc
     fi
     make lib
     mv spooles.a libspooles.a
     cd $GITHUB_WORKSPACE
 fi
+
+# # this might help locating Homebrew's libgfortran
+# if [[ "$RUNNER_OS" == "macOS" ]]; then
+#     find / -name libgfortran.a 2>/dev/null
+#     find / -name libquadmath.a 2>/dev/null
+# fi
 
 # Modify setupcfg.py file
 if [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -69,7 +82,11 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_INCLUDE =.*@SPOOLES_INCLUDE="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     # sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc\/14.1.0_1\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
-    sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+    if [[ "$RUNNER_ARCH" == "arm64" ]]; then
+        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/opt\/homebrew\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+    else
+        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+    fi
 else
     sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
