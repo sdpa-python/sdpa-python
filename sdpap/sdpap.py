@@ -371,8 +371,8 @@ def solve(A, b, c, K, J, option={}):
         sdpainfo['dualObj'] += gamma
 
     sdpapinfo = dict()
-    sdpapinfo['primalObj'] = sdpainfo['primalObj'] # (c.T * x)[0,0]
-    sdpapinfo['dualObj'] = sdpainfo['dualObj'] # (b.T * y)[0,0]
+    sdpapinfo['primalObj'] = (c.T * x)[0,0]
+    sdpapinfo['dualObj'] = (b.T * y)[0,0]
     sdpapinfo['dualityGap'] = sdpaputils.get_dualitygap(x, y, b, c)
     # sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
     # sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
