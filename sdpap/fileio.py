@@ -22,12 +22,13 @@ September 2010: Originally written by Kenta Kato
 December 2010: Modified for SciPy
 """
 
-__all__ = ['readproblem', 'writeproblem', 'fromsdpa', 'tosdpa']
+__all__ = ['readproblem', 'writeproblem', 'fromsdpa', 'tosdpa', 'importsdpa', 'exportsdpa']
 
 from . import convert
 from .symcone import SymCone
 from scipy.sparse import csc_matrix, csr_matrix
 from scipy import sparse
+import warnings
 
 
 def readproblem(filename):
@@ -267,7 +268,7 @@ def writeproblem(filename, A, b, c, K, J, accuracy="%+8.16e"):
     return
 
 
-def fromsdpa(filename):
+def importsdpa(filename, flipsign=True):
     """Convert from SDPA sparse format to CLP format
 
     Args:
@@ -452,10 +453,15 @@ def fromsdpa(filename):
     A = csc_matrix((elements_A[2], (elements_A[0], elements_A[1])),
                    shape=(J.f, size_K))
 
+    if flipsign:
+        c = -c
+        b = -b
+        A = -A
+
     return A, b, c, K, J
 
 
-def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
+def exportsdpa(filename, A, b, c, K, J, accuracy="%+8.16e", flipsign=True):
     """Convert from SeDuMi format to SDPA sparse format
 
     If J.l or J.q or J.s are not empty, CLP format will be converted
@@ -489,11 +495,14 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
     # Note that primal-dual is reverse in SeDuMi.
     # So c2 must be -c2.
     # In addition, A2 should be passed in the transposed style.
-    # December 2023 edit: to maintain consistency with `writeproblem` method
-    # (that exports to CLP format) this sign flipping is being omitted here.
-    c2 = c
-    b2 = b
-    A2 = A
+    if flipsign:
+        c2 = -c
+        b2 = -b
+        A2 = -A
+    else:
+        c2 = c
+        b2 = b
+        A2 = A
 
     fp = open(filename, "w")
 
@@ -668,6 +677,30 @@ def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
 
     fp.close()
     return
+
+
+# retaining them for backward compatibility
+
+def fromsdpa(filename):
+    warnings.warn("fromsdpa will be removed in the future. "
+        "Please use importsdpa.", DeprecationWarning, stacklevel=2)
+    A, b, c, K, J = importsdpa(filename, flipsign=False)
+    return A, b, c, K, J
+
+def tosdpa(filename, A, b, c, K, J, accuracy="%+8.16e"):
+    warnings.warn("tosdpa will be removed in the future. "
+        "Please use exportsdpa.", DeprecationWarning, stacklevel=2)
+
+    # Note that with flipsign=True, this is identical to the exportsdpa routine
+    # that replaces it (i.e. does not require flipping sign of A, b, c).
+    exportsdpa(filename, A, b, c, K, J, accuracy="%+8.16e", flipsign=True)
+
+    # Reason for deprecating this (and the accompanying fromsdpa routine):
+    # tosdpa did not require sign flipping (while fromsdpa required manual
+    # sign flipping). This was confusing to the user.
+
+    # The new importsdpa and exportsdpa routines both perform sign
+    # flipping by default which is intuitive to most users.
 
 
 # ==================================================

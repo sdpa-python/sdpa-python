@@ -50,9 +50,9 @@ def check_sdpa_consistency(reference_filename, accuracy="%+8.16e"):
         os.mkdir(output_dir)
     output_src = os.path.join(output_dir, reference_filename)
 
-    A, b, c, K, J = sdpap.fromsdpa(reference_src)
-    sdpap.tosdpa(output_src, A, b, c, K, J, accuracy)
-    A2, b2, c2, K2, J2 = sdpap.fromsdpa(output_src)
+    A, b, c, K, J = sdpap.importsdpa(reference_src)
+    sdpap.exportsdpa(output_src, A, b, c, K, J, accuracy)
+    A2, b2, c2, K2, J2 = sdpap.importsdpa(output_src)
 
     diff_A = abs(A2-A).max()
     diff_B = abs(b2-b).max()
