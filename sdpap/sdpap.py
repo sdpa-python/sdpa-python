@@ -41,6 +41,7 @@ from scipy import sparse
 import numpy as np
 import copy
 import time
+import warnings
 
 def solve(A, b, c, K, J, option={}):
     """Solve CLP by SDPA
@@ -374,8 +375,17 @@ def solve(A, b, c, K, J, option={}):
     sdpapinfo['primalObj'] = (c.T * x)[0,0]
     sdpapinfo['dualObj'] = (b.T * y)[0,0]
     sdpapinfo['dualityGap'] = sdpaputils.get_dualitygap(x, y, b, c)
-    # sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
-    # sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
+    maybe_print('(Re)calculating feasibility errors for CLP converted solution.')
+    try:
+        sdpapinfo['primalError'] = sdpaputils.get_primalerror(x, A, b, J)
+    except RuntimeError as e:
+        print(e)
+        sdpapinfo['primalError'] = None
+    try:
+        sdpapinfo['dualError'] = sdpaputils.get_dualerror(y, A, c, K)
+    except RuntimeError as e:
+        print(e)
+        sdpapinfo['dualError'] = None
 
     """
     SDPAP input is in CLP format (generalization of SeDuMi)
@@ -417,12 +427,24 @@ def solve(A, b, c, K, J, option={}):
     maybe_print("     primalObj = %+10.16e" % sdpapinfo['primalObj'])
     maybe_print("       dualObj = %+10.16e" % sdpapinfo['dualObj'])
     maybe_print("    dualityGap = %+10.16e" % sdpapinfo['dualityGap'])
-    # maybe_print("   primalError = %+10.16e" % sdpapinfo['primalError'])
-    # maybe_print("     dualError = %+10.16e" % sdpapinfo['dualError'])
+    if sdpapinfo['primalError'] is not None:
+        maybe_print("   primalError = %+10.16e" % sdpapinfo['primalError'])
+    else:
+        maybe_print("   primalError = ")
+    if sdpapinfo['dualError'] is not None:
+        maybe_print("     dualError = %+10.16e" % sdpapinfo['dualError'])
+    else:
+        maybe_print("     dualError = ")
     maybe_print("   convertTime = %f" % timeinfo['convert'])
     maybe_print("     solveTime = %f" % timeinfo['sdpa'])
     maybe_print("retrievingTime = %f" % timeinfo['retrieve'])
     maybe_print("     totalTime = %f" % timeinfo['total'])
     maybe_print('---------- SDPAP End ----------')
+
+    if (sdpapinfo['primalError'] is None) or (sdpapinfo['dualError'] is None):
+        warnings.warn("Python recalculation of primal and/or dual feasibility "
+        "error failed due to numerical issues in eigenvalue computation. SDPA "
+        "for Python is only able to report the feasibility errors computed by "
+        "the backend solver.", RuntimeWarning, stacklevel=2)
 
     return x, y, sdpapinfo, timeinfo, sdpainfo
