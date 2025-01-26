@@ -74,7 +74,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='sdpa-multiprecision' if USEGMP else 'sdpa-python',
-    version='0.2.1',
+    version='0.2.2',
     maintainer='Usama Muneeb',
     maintainer_email='umunee2@uic.edu',
     url='https://sdpa-python.github.io',
