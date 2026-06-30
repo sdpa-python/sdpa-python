@@ -16,12 +16,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        os: [ ubuntu-24.04, macos-15-intel, windows-2025 ]
         arch: [ x86_64 ]
         include:
-          - os: macos-13
+          - os: macos-15 # no prefix means an ARM runner
             arch: arm64
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04-arm
             arch: aarch64
 
     steps:
@@ -38,7 +38,7 @@ jobs:
         repository: sdpa-python/sdpa-multiprecision
 
     - name: Install Requirements (Windows)
-      if: ${{ matrix.os == 'windows-2022' }}
+      if: ${{ matrix.os == 'windows-2025' }}
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
@@ -53,21 +53,15 @@ jobs:
         update: true
 
     - name: Building libsdpa and preparing setupcfg.py (Windows)
-      if: ${{ matrix.os == 'windows-2022' }}
+      if: ${{ matrix.os == 'windows-2025' }}
       shell: 'msys2 {0}'
       run: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
 
-    - name: Set up QEMU (Linux)
-      if: ${{ runner.os == 'Linux' && matrix.arch == 'aarch64' }}
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
-
     - name: Build wheels
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
-      uses: pypa/cibuildwheel@v2.22.0
+      uses: pypa/cibuildwheel@v4.1.0
       env:
-        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
+        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project" LD_LIBRARY_PATH="/project/gmp-6.3.0+dfsg/lib:$LD_LIBRARY_PATH"
         CIBW_ENVIRONMENT_MACOS: RUNNER_ARCH=${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
         CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
@@ -118,12 +112,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macos-13, windows-2022 ]
+        os: [ ubuntu-24.04, macos-15-intel, windows-2025 ]
         arch: [ x86_64 ]
         include:
-          - os: macos-14
+          - os: macos-15 # no prefix means an ARM runner
             arch: arm64
-          - os: ubuntu-22.04
+          - os: ubuntu-24.04-arm
             arch: aarch64
 
     steps:
@@ -134,7 +128,7 @@ jobs:
         path: sdpa-python
 
     - name: Install Requirements (Windows)
-      if: ${{ matrix.os == 'windows-2022' }}
+      if: ${{ matrix.os == 'windows-2025' }}
       uses: msys2/setup-msys2@v2
       with:
         msystem: mingw64
@@ -151,33 +145,27 @@ jobs:
         update: true
 
     - name: Building libsdpa and preparing setupcfg.py (Windows)
-      if: ${{ matrix.os == 'windows-2022' }}
+      if: ${{ matrix.os == 'windows-2025' }}
       shell: 'msys2 {0}'
       run: source sdpa-python/continuous_integration/build_libsdpa.sh
 
     - name: Install Requirements (macOS)
-      if: ${{ (matrix.os == 'macos-13' || matrix.os == 'macos-14') }}
+      if: ${{ (matrix.os == 'macos-15-intel' || matrix.os == 'macos-15') }}
       uses: fortran-lang/setup-fortran@v1
 
-    - name: Set up QEMU (Linux)
-      if: ${{ runner.os == 'Linux' && matrix.arch == 'aarch64' }}
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
-
     - name: Conditionally set CIBW_ENVIRONMENT_MACOS
-      if: ${{ (matrix.os == 'macos-13' || matrix.os == 'macos-14') }}
+      if: ${{ (matrix.os == 'macos-15-intel' || matrix.os == 'macos-15') }}
       run: |
         RUNNER_ARCH=${{ matrix.arch }}
         if [[ "$RUNNER_ARCH" == "arm64" ]]; then
-          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=arm64 MACOSX_DEPLOYMENT_TARGET=14.0" >> $GITHUB_ENV
+          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=arm64 MACOSX_DEPLOYMENT_TARGET=15.0" >> $GITHUB_ENV
         else
-          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=x86_64 MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=x86_64 MACOSX_DEPLOYMENT_TARGET=15.0" >> $GITHUB_ENV
         fi
 
     - name: Build wheels
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
-      uses: pypa/cibuildwheel@v2.22.0
+      uses: pypa/cibuildwheel@v4.1.0
       env:
         CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
         CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa.sh

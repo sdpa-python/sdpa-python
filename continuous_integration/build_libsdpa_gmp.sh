@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# if [[ "$RUNNER_OS" == "RedHat" ]]; then
-#     yum update -y
-#     yum install -y epel-release
-#     yum install -y glibc-static
-# fi
+PS4='$ '
+set -x
+
+if [[ "$RUNNER_OS" == "manylinux" ]]; then
+    yum update -y
+    yum install -y epel-release
+    yum install -y glibc-static
+fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     cd /d
@@ -29,7 +32,7 @@ echo "install:" >> doc/Makefile.in
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     # on Windows, longer paths cause problems during build
     # we therefore build GMP in /d
-    ./configure --prefix=/d/gmp-6.3.0+dfsg --enable-cxx
+    ./configure --prefix=/d/gmp-6.3.0+dfsg --enable-cxx CFLAGS="-std=gnu17" CXXFLAGS="-std=gnu++17"
     make
     make check
     make install
@@ -47,19 +50,18 @@ fi
 ls -al lib # shows compiled libgmp
 cd $GITHUB_WORKSPACE
 
+cd sdpa-multiprecision
+sed -i.bak "s/-funroll-all-loops/-Wno-error=int-conversion -funroll-all-loops/g" spooles/patches/patch-Make.inc
 if [[ "$RUNNER_OS" == "Windows" ]]; then
-    cd sdpa-multiprecision
     ./configure --with-system-spooles --with-spooles-includedir=/d/msys64/mingw64/include/spooles CFLAGS="-DNDEBUG" CXXFLAGS="-DNDEBUG"
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
-    cd sdpa-multiprecision
     if [[ "$RUNNER_ARCH" == "arm64" ]]; then
         sed -i.bak "s/-funroll-all-loops/-arch arm64 -funroll-all-loops/g" spooles/patches/patch-Make.inc
-        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -arch arm64" CXXFLAGS="-DNDEBUG -arch arm64" --host=arm64-apple-darwin
+        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -arch arm64 -Wno-literal-suffix -Wno-reserved-user-defined-literal" CXXFLAGS="-DNDEBUG -arch arm64 -Wno-literal-suffix -Wno-reserved-user-defined-literal" --host=arm64-apple-darwin
     else
-        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG" CXXFLAGS="-DNDEBUG"
+        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -Wno-reserved-user-defined-literal" CXXFLAGS="-DNDEBUG -Wno-reserved-user-defined-literal"
     fi
 else
-    cd sdpa-multiprecision
     ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG" CXXFLAGS="-DNDEBUG"
 fi
 

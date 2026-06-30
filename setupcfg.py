@@ -11,12 +11,12 @@ USEGMP = False
 
 Specify the package name of the backend you intend to use.
 The regular backend can be downloaded from https://sdpa.sourceforge.net
-and currently the latest is `sdpa-7.3.16`
+and currently the latest is `sdpa-7.3.21`
 
 The latest version of the multiprecision backend can be cloned from
 https://github.com/sdpa-python/sdpa-multiprecision
 """
-sdpa_package_name = 'sdpa-7.3.16'
+sdpa_package_name = 'sdpa-7.3.21'
 # OR sdpa_package_name = 'sdpa-multiprecision'
 
 """
