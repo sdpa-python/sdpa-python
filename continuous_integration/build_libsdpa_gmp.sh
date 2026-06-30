@@ -57,9 +57,9 @@ if [[ "$RUNNER_OS" == "Windows" ]]; then
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
     if [[ "$RUNNER_ARCH" == "arm64" ]]; then
         sed -i.bak "s/-funroll-all-loops/-arch arm64 -funroll-all-loops/g" spooles/patches/patch-Make.inc
-        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -arch arm64" CXXFLAGS="-DNDEBUG -arch arm64" --host=arm64-apple-darwin
+        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -arch arm64 -Wno-literal-suffix -Wno-reserved-user-defined-literal" CXXFLAGS="-DNDEBUG -arch arm64 -Wno-literal-suffix -Wno-reserved-user-defined-literal" --host=arm64-apple-darwin
     else
-        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG" CXXFLAGS="-DNDEBUG"
+        ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG -Wno-reserved-user-defined-literal" CXXFLAGS="-DNDEBUG -Wno-reserved-user-defined-literal"
     fi
 else
     ./configure --with-gmp-includedir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/include --with-gmp-libdir=$GITHUB_WORKSPACE/gmp-6.3.0+dfsg/lib CFLAGS="-DNDEBUG" CXXFLAGS="-DNDEBUG"
