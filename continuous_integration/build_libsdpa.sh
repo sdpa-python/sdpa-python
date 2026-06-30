@@ -47,6 +47,7 @@ if [[ "$RUNNER_OS" != "Windows" ]]; then
     tar -zxf spooles_2.2.orig.tar.gz -C spooles
     cd spooles
     sed -i.bak 's/CC =.*//' Make.inc
+    sed -i.bak "s/-funroll-all-loops/-Wno-error=int-conversion -funroll-all-loops/g" Make.inc
     if [[ "$RUNNER_OS" == "Linux" ]] || [[ "$RUNNER_OS" == "manylinux" ]]; then
         sed -i.bak 's/^  CFLAGS =.*/& -fPIC/' Make.inc
         # this patch is critical only on Ubuntu
