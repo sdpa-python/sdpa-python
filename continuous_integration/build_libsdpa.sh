@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PS4='$ '
+set -x
+
 if [[ "$RUNNER_OS" == "Linux" ]]; then
     # when this script runs directly inside a Ubuntu runner
     sudo apt-get update -y
