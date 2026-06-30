@@ -32,7 +32,7 @@ echo "install:" >> doc/Makefile.in
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     # on Windows, longer paths cause problems during build
     # we therefore build GMP in /d
-    ./configure --prefix=/d/gmp-6.3.0+dfsg --enable-cxx
+    ./configure --prefix=/d/gmp-6.3.0+dfsg --enable-cxx CFLAGS="-std=gnu17" CXXFLAGS="-std=gnu++17"
     make
     make check
     make install
