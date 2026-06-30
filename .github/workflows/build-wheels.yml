@@ -61,7 +61,7 @@ jobs:
       if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
       uses: pypa/cibuildwheel@v4.1.0
       env:
-        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
+        CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project" LD_LIBRARY_PATH="/project/gmp-6.3.0+dfsg/lib:$LD_LIBRARY_PATH"
         CIBW_ENVIRONMENT_MACOS: RUNNER_ARCH=${{ matrix.arch }}
         CIBW_BEFORE_ALL_LINUX: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
         CIBW_BEFORE_ALL_WINDOWS: set PATH=D:\msys64\mingw64\bin;%PATH%
