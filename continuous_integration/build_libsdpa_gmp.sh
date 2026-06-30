@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# if [[ "$RUNNER_OS" == "RedHat" ]]; then
-#     yum update -y
-#     yum install -y epel-release
-#     yum install -y glibc-static
-# fi
+if [[ "$RUNNER_OS" == "manylinux" ]]; then
+    yum update -y
+    yum install -y epel-release
+    yum install -y glibc-static
+fi
 
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     cd /d
