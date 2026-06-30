@@ -158,9 +158,9 @@ jobs:
       run: |
         RUNNER_ARCH=${{ matrix.arch }}
         if [[ "$RUNNER_ARCH" == "arm64" ]]; then
-          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=arm64 MACOSX_DEPLOYMENT_TARGET=14.0" >> $GITHUB_ENV
+          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=arm64 MACOSX_DEPLOYMENT_TARGET=15.0" >> $GITHUB_ENV
         else
-          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=x86_64 MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
+          echo "CIBW_ENVIRONMENT_MACOS=RUNNER_ARCH=x86_64 MACOSX_DEPLOYMENT_TARGET=15.0" >> $GITHUB_ENV
         fi
 
     - name: Build wheels

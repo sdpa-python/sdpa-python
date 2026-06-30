@@ -85,11 +85,10 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
     sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.21"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_INCLUDE =.*@SPOOLES_INCLUDE="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
-    # sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc\/14.1.0_1\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
     if [[ "$RUNNER_ARCH" == "arm64" ]]; then
-        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/opt\/homebrew\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/opt\/homebrew\/Cellar\/gcc@15\/15.3.0\/lib\/gcc\/15'/g" sdpa-python/setupcfg.py
     else
-        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
+        sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc@15\/15.3.0\/lib\/gcc\/15'/g" sdpa-python/setupcfg.py
     fi
 else
     sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.21"@g' sdpa-python/setupcfg.py
