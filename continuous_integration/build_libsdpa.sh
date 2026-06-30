@@ -13,14 +13,14 @@ elif [[ "$RUNNER_OS" == "manylinux" ]]; then
 fi
 
 # Download and patch libsdpa
-curl -L -O https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.18.tar.gz
-tar -zxf sdpa_7.3.18.tar.gz
-cd sdpa-7.3.18
+curl -L -O https://downloads.sourceforge.net/project/sdpa/sdpa/sdpa_7.3.21.tar.gz
+tar -zxf sdpa_7.3.21.tar.gz
+cd sdpa-7.3.21
 # At every release of sdpa-python, we should attempt to link against latest
 # MUMPS package (even if there is no new `sdpa` release at sdpa.sourceforge.net)
 # Please check the bottom of this webpage for latest MUMPS available:
 # http://ftp.de.debian.org/debian/pool/main/m/mumps/
-sed -i.bak 's/MUMPS_VER =.*/MUMPS_VER = 5.7.3/' mumps/Makefile
+sed -i.bak 's/MUMPS_VER =.*/MUMPS_VER = 5.9.0/' mumps/Makefile
 # `wget` may not be available but `curl` almost always is
 sed -i.bak 's/wget/curl -L -O/' mumps/Makefile
 
@@ -70,7 +70,7 @@ fi
 if [[ "$RUNNER_OS" == "Windows" ]]; then
     original_value="${GITHUB_WORKSPACE}"
     new_value="${original_value//\\//}" # replace \ with /
-    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'$new_value'\/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
+    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'$new_value'\/sdpa-7.3.21"@g' sdpa-python/setupcfg.py
     sed -i.bak "s/MINGW_LIBS =.*/MINGW_LIBS=os.path.join('D:\/','msys64','mingw64','lib')/g" sdpa-python/setupcfg.py
     sed -i.bak "s/SPOOLES_INCLUDE =.*/SPOOLES_INCLUDE=os.path.join('D:\/','msys64','mingw64','include','spooles')/g" sdpa-python/setupcfg.py
     sed -i.bak "s/SPOOLES_DIR =.*/SPOOLES_DIR=os.path.join('D:\/','msys64','mingw64','lib')/g" sdpa-python/setupcfg.py
@@ -78,7 +78,7 @@ if [[ "$RUNNER_OS" == "Windows" ]]; then
     echo "[build]" > sdpa-python/setup.cfg
     echo "compiler=mingw32" >> sdpa-python/setup.cfg
 elif [[ "$RUNNER_OS" == "macOS" ]]; then
-    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
+    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.21"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_INCLUDE =.*@SPOOLES_INCLUDE="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     # sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/Cellar\/gcc\/14.1.0_1\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
@@ -88,7 +88,7 @@ elif [[ "$RUNNER_OS" == "macOS" ]]; then
         sed -i.bak "s/GFORTRAN_LIBS =.*/GFORTRAN_LIBS='\/usr\/local\/opt\/gcc\/lib\/gcc\/current'/g" sdpa-python/setupcfg.py
     fi
 else
-    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.18"@g' sdpa-python/setupcfg.py
+    sed -i.bak 's@SDPA_DIR =.*@SDPA_DIR="'"$GITHUB_WORKSPACE"'/sdpa-7.3.21"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_DIR =.*@SPOOLES_DIR="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak 's@SPOOLES_INCLUDE =.*@SPOOLES_INCLUDE="'"$GITHUB_WORKSPACE"'/spooles"@g' sdpa-python/setupcfg.py
     sed -i.bak "s/BLAS_LAPACK_LIBS =.*/BLAS_LAPACK_LIBS = ['openblas']/g" sdpa-python/setupcfg.py
