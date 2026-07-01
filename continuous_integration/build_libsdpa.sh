@@ -35,6 +35,7 @@ fi
 
 # Build SDPA and MUMPS and `cd` back into main directory
 make
+sed -i 's/$/\r/' example1.dat
 ./sdpa example1.dat example1.out
 
 cd $GITHUB_WORKSPACE
@@ -47,17 +48,16 @@ if [[ "$RUNNER_OS" != "Windows" ]]; then
     tar -zxf spooles_2.2.orig.tar.gz -C spooles
     cd spooles
     sed -i.bak 's/CC =.*//' Make.inc
-    sed -i.bak "s/-funroll-all-loops/-Wno-error=int-conversion -funroll-all-loops/g" Make.inc
+
+    # solves error: incompatible pointer to integer conversion passing 'void *' to parameter of type 'int' [-Wint-conversion]
+    # previously happened only on M1, now global
+    sed -i.bak 's/^  CFLAGS =.*/& -Wno-int-conversion/' Make.inc
+
     if [[ "$RUNNER_OS" == "Linux" ]] || [[ "$RUNNER_OS" == "manylinux" ]]; then
         sed -i.bak 's/^  CFLAGS =.*/& -fPIC/' Make.inc
-        # this patch is critical only on Ubuntu
+        # this patch is critical only on Linux
         curl -O https://raw.githubusercontent.com/sdpa-python/sdpa-multiprecision/main/spooles/patches/patch-timings.h
         patch -p0 < patch-timings.h
-    elif [[ "$RUNNER_OS" == "macOS" ]] && [[ "$RUNNER_ARCH" == "arm64" ]]; then
-        # solves
-        # error: incompatible pointer to integer conversion passing 'void *' to parameter of type 'int' [-Wint-conversion]
-        # while building SPOOLES on M1
-        sed -i.bak 's/^  CFLAGS =.*/& -Wno-int-conversion/' Make.inc
     fi
     make lib
     mv spooles.a libspooles.a

@@ -58,7 +58,6 @@ jobs:
       run: source sdpa-python/continuous_integration/build_libsdpa_gmp.sh
 
     - name: Build wheels
-      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
       uses: pypa/cibuildwheel@v4.1.0
       env:
         CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project" LD_LIBRARY_PATH="/project/gmp-6.3.0+dfsg/lib:$LD_LIBRARY_PATH"
@@ -165,7 +164,6 @@ jobs:
         fi
 
     - name: Build wheels
-      if: ${{ (runner.os != 'Linux' || matrix.arch != 'aarch64') || (env.PUSH_WHEELS == 'TEST' || env.PUSH_WHEELS == 'YES')}}
       uses: pypa/cibuildwheel@v4.1.0
       env:
         CIBW_ENVIRONMENT_LINUX: RUNNER_OS="manylinux" GITHUB_WORKSPACE="/project"
