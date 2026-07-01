@@ -93,7 +93,7 @@ setup(
         ext_fvelim,
         ext_spcolo
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.9",
 
     classifiers=[
         'Development Status :: 3 - Alpha',

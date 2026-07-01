@@ -76,9 +76,9 @@ jobs:
         package-dir: ./sdpa-python
 
     - name: Install Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
-        python-version: '3.10'
+        python-version: '3.13'
 
     - name: Check wheels
       if: ${{ runner.os != 'Linux' || matrix.arch != 'aarch64' }}
@@ -181,9 +181,9 @@ jobs:
         package-dir: ./sdpa-python
 
     - name: Install Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
-        python-version: '3.10'
+        python-version: '3.13'
 
     - name: Check wheels
       if: ${{ runner.os != 'Linux' || matrix.arch != 'aarch64' }}
